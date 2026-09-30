@@ -19,6 +19,8 @@ function copyLegacyAssets() {
       for (const dir of ['js', 'images']) {
         cpSync(dir, `dist/${dir}`, { recursive: true });
       }
+      /* index.html 이 <script src> 로 읽는 도메인 코어 번들 */
+      cpSync('packages/core/dist/core.iife.js', 'dist/packages/core/dist/core.iife.js');
     }
   };
 }

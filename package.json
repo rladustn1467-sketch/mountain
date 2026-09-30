@@ -2,15 +2,26 @@
   "name": "ai-hiking-health-coach",
   "version": "0.1.0",
   "private": true,
-  "description": "AI 등산 코치 — 모바일 앱을 Primary Product로 하는 서비스의 웹 프로토타입 및 도메인 로직 원본",
+  "description": "AI 등산 코치 — 모바일 앱을 Primary Product 로 하는 서비스. 이 저장소는 도메인 코어(packages/core)와 웹 프로토타입을 담는다.",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
+    "core:build": "npm run build -w @hhc/core",
+    "core:typecheck": "npm run typecheck -w @hhc/core",
+    "core:purity": "npm run lint:purity -w @hhc/core",
+    "predev": "npm run core:build",
     "dev": "vite",
+    "prebuild": "npm run core:build",
     "build": "vite build",
     "preview": "vite preview",
-    "smoke": "node test/smoke.mjs"
+    "presmoke": "npm run core:build",
+    "smoke": "node test/smoke.mjs",
+    "check": "npm run core:purity && npm run core:typecheck && npm run smoke"
   },
   "devDependencies": {
     "jsdom": "^26.1.0",
+    "typescript": "^5.9.3",
     "vite": "^7.1.14"
   }
 }
