@@ -1,0 +1,16 @@
+{
+  "name": "ai-hiking-health-coach",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI 등산 코치 — 모바일 앱을 Primary Product로 하는 서비스의 웹 프로토타입 및 도메인 로직 원본",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "smoke": "node test/smoke.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0",
+    "vite": "^7.1.14"
+  }
+}
