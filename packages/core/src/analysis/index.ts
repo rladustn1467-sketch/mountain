@@ -15,7 +15,7 @@
    ISSUE-005: 한국어 문장을 직접 만들어 반환한다. 다국어 · 문구 A/B ·
               LLM 교체를 위해서는 { code, params } 구조로 바꿔야 하지만,
               반환 형태를 바꾸면 화면 코드가 깨지므로 Phase 2 로 미룬다.
-   ISSUE-006: icon 값이 Font Awesome 클래스명에 묶여 있다.
+   ISSUE-006 해소: icon 은 의미 키(IconKey)다. Font Awesome 클래스명이 아니다.
    ========================================================================== */
 import type { Analysis, AnalysisPoint, HikeRecord } from '../types';
 import { hasStatsData } from '../types';
@@ -34,11 +34,11 @@ export function buildAnalysis(records: HikeRecord[], now: number = Date.now()): 
 
   if (s.count === 1) {
     p.push({
-      icon: 'fa-flag-checkered',
+      icon: 'flag-finish',
       text: `첫 산행을 완료했습니다. ${first.distance.toFixed(1)}km · ${fmtDur(first.duration)} · +${Math.round(first.ascent)}m 기록이 AI 학습의 시작점이 됩니다.`
     });
-    p.push({ icon: 'fa-brain', text: '아직 비교할 이전 데이터가 없어 이번 기록을 기준선(baseline)으로 저장했습니다.' });
-    p.push({ icon: 'fa-route', text: '다음 산행부터 이 기준선과 비교해 난이도를 조정해 추천합니다.' });
+    p.push({ icon: 'brain', text: '아직 비교할 이전 데이터가 없어 이번 기록을 기준선(baseline)으로 저장했습니다.' });
+    p.push({ icon: 'route', text: '다음 산행부터 이 기준선과 비교해 난이도를 조정해 추천합니다.' });
     return { headline: '첫 산행 데이터를 분석했습니다.', points: p, confidence: 1, baseline: true };
   }
 
@@ -46,18 +46,18 @@ export function buildAnalysis(records: HikeRecord[], now: number = Date.now()): 
   const d = s.distanceTrend;
   if (Math.abs(d) >= 1) {
     p.push({
-      icon: d > 0 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down',
+      icon: d > 0 ? 'trend-up' : 'trend-down',
       text: `지난 산행보다 거리는 약 ${Math.abs(d).toFixed(0)}% ${d > 0 ? '증가' : '감소'}했습니다.`
     });
   } else {
-    p.push({ icon: 'fa-equals', text: '거리는 지난 산행과 거의 동일하게 유지되었습니다.' });
+    p.push({ icon: 'equal', text: '거리는 지난 산행과 거의 동일하게 유지되었습니다.' });
   }
 
   /* 고도 변화 */
   const a = s.ascentTrend;
   if (Math.abs(a) >= 2) {
     p.push({
-      icon: a > 0 ? 'fa-mountain' : 'fa-mountain-sun',
+      icon: a > 0 ? 'mountain' : 'mountain-sun',
       text: `고도 상승량은 약 ${Math.abs(a).toFixed(0)}% ${a > 0 ? '늘었습니다' : '줄었습니다'}. ${a > 0 ? '오르막 적응력이 향상되고 있습니다.' : '체력 배분을 다시 점검해 보세요.'}`
     });
   }
@@ -65,12 +65,12 @@ export function buildAnalysis(records: HikeRecord[], now: number = Date.now()): 
   /* 페이스 안정성 */
   if (s.paceStability >= 75) {
     p.push({
-      icon: 'fa-wave-square',
+      icon: 'pace-stability',
       text: `오르막 구간에서 평균 페이스가 안정적으로 유지되었습니다 (안정성 ${Math.round(s.paceStability)}/100).`
     });
   } else if (s.paceStability > 0) {
     p.push({
-      icon: 'fa-wave-square',
+      icon: 'pace-stability',
       text: `구간별 페이스 편차가 있습니다 (안정성 ${Math.round(s.paceStability)}/100). 초반 속도를 조금 줄여보세요.`
     });
   }
@@ -81,12 +81,12 @@ export function buildAnalysis(records: HikeRecord[], now: number = Date.now()): 
     const gapTxt = s.avgGap.toFixed(0);
     if (s.avgGap <= 10 && s.trendDirection === 'up') {
       p.push({
-        icon: 'fa-dumbbell',
+        icon: 'strength',
         text: `최근 약 ${gapTxt}일 간격으로 꾸준히 산행하고 있습니다. 같은 난이도에서 페이스를 더 끌어올려 볼 수 있습니다.`
       });
     } else {
       p.push({
-        icon: 'fa-clock-rotate-left',
+        icon: 'interval',
         text: `평소 산행 주기는 약 ${gapTxt}일입니다. 이 주기를 기준으로 다음 산행을 계획하면 무리 없이 유지할 수 있습니다.`
       });
     }
@@ -94,11 +94,11 @@ export function buildAnalysis(records: HikeRecord[], now: number = Date.now()): 
 
   /* 다음 난이도 제안 */
   if (s.trendDirection === 'up') {
-    p.push({ icon: 'fa-arrow-up-right-dots', text: '다음 산행에서는 현재 난이도를 유지하거나 약간 높은 난이도에 도전할 수 있습니다.' });
+    p.push({ icon: 'level-up', text: '다음 산행에서는 현재 난이도를 유지하거나 약간 높은 난이도에 도전할 수 있습니다.' });
   } else if (s.trendDirection === 'down') {
-    p.push({ icon: 'fa-shield-heart', text: '최근 기록이 다소 낮아졌습니다. 다음 산행은 비슷하거나 조금 낮은 난이도로 회복하는 것을 권장합니다.' });
+    p.push({ icon: 'recovery', text: '최근 기록이 다소 낮아졌습니다. 다음 산행은 비슷하거나 조금 낮은 난이도로 회복하는 것을 권장합니다.' });
   } else {
-    p.push({ icon: 'fa-scale-balanced', text: '현재 난이도를 유지하면서 거리나 고도를 조금씩 늘려가는 단계입니다.' });
+    p.push({ icon: 'balanced', text: '현재 난이도를 유지하면서 거리나 고도를 조금씩 늘려가는 단계입니다.' });
   }
 
   return {

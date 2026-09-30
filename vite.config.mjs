@@ -19,8 +19,12 @@ function copyLegacyAssets() {
       for (const dir of ['js', 'images']) {
         cpSync(dir, `dist/${dir}`, { recursive: true });
       }
-      /* index.html 이 <script src> 로 읽는 도메인 코어 번들 */
-      cpSync('packages/core/dist/core.iife.js', 'dist/packages/core/dist/core.iife.js');
+      /* index.html 이 <script src> 로 읽는 도메인 코어 번들.
+         core-demo.iife.js 는 개발 전용이다 (ISSUE-012) — 프로덕션 빌드에서
+         제외하려면 아래 목록과 index.html 의 스크립트 태그에서 함께 빼면 된다. */
+      for (const f of ['core.iife.js', 'core-demo.iife.js']) {
+        cpSync(`packages/core/dist/${f}`, `dist/packages/core/dist/${f}`);
+      }
     }
   };
 }

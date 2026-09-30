@@ -94,10 +94,11 @@ HHC.ui = (function () {
     </section>`;
   }
 
+  /* core 는 의미 키('trend-up')를 주고, 여기서 웹 아이콘으로 바꾼다 (ISSUE-006) */
   function aiPoints(points) {
     if (!points || !points.length) return '';
     return `<ul class="ai-points">${points.map((p) => `
-      <li><i class="fa-solid ${p.icon}"></i><span>${p.text}</span></li>`).join('')}</ul>`;
+      <li><i class="fa-solid ${HHC.icons.fa(p.icon)}"></i><span>${p.text}</span></li>`).join('')}</ul>`;
   }
 
   function bar(value, max, labelRight) {
@@ -127,7 +128,7 @@ HHC.ui = (function () {
       return `<p class="no-data"><i class="fa-solid fa-circle-info"></i>예정일이 예보 범위를 넘어 날씨 데이터가 없습니다</p>`;
     }
     return `<div class="weather-strip">
-      <div class="weather-item"><div class="weather-item__icon"><i class="fa-solid ${w.icon}"></i></div>
+      <div class="weather-item"><div class="weather-item__icon"><i class="fa-solid ${HHC.icons.fa(w.icon)}"></i></div>
         <div class="weather-item__value">${w.tempMin}~${w.tempMax}°</div><div class="weather-item__label">기온</div></div>
       <div class="weather-item"><div class="weather-item__icon"><i class="fa-solid fa-droplet"></i></div>
         <div class="weather-item__value">${w.rain}%</div><div class="weather-item__label">강수</div></div>

@@ -29,6 +29,26 @@ window.HHC = window.HHC || {};
   var state = load();
   var listeners = new Set();
 
+  /* ------------------------ 파생값 캐시 (ISSUE-016) ------------------------
+     한 화면을 그리는 동안 getStats() / recommendNext() 가 여러 번 호출된다
+     (홈 · 추천 · 코스상세 · 분석 · 패턴). 계산 결과는 순수 함수의 출력이므로
+     "상태가 그대로면 결과도 그대로" 다. 상태 변경 시에만 캐시를 버린다.
+
+     캐시 키에 한국 달력 일자를 포함해, 자정을 넘기면 자동으로 무효화된다
+     (daysSinceLast · 예정일 계산이 날짜에 의존하므로).
+     계산식과 결과는 바뀌지 않는다. 호출 횟수만 줄어든다. */
+  var version = 0;
+  var cache = {};
+
+  function invalidate() { version += 1; cache = {}; }
+
+  function cached(key, compute) {
+    var stamp = version + ':' + core.kstDayIndex(Date.now());
+    if (cache.stamp !== stamp) cache = { stamp: stamp };
+    if (!(key in cache)) cache[key] = compute();
+    return cache[key];
+  }
+
   /* ======================= persistence (웹 전용) =======================
      이 두 함수가 StateRepository 인터페이스(core/state/repository.ts)의
      웹 구현체다. 모바일은 SQLite / AsyncStorage, 서버는 HTTP 로 대체한다. */
@@ -42,6 +62,7 @@ window.HHC = window.HHC || {};
     }
   }
   function persist() {
+    invalidate();
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (e) {
@@ -96,23 +117,25 @@ window.HHC = window.HHC || {};
 
   /** 파생 통계 */
   function getStats() {
-    return core.getStats(state.records);
+    return cached('stats', function () { return core.getStats(state.records); });
   }
 
   /** AI 분석 문장 */
   function buildAnalysis() {
-    return core.buildAnalysis(state.records);
+    return cached('analysis', function () { return core.buildAnalysis(state.records); });
   }
 
   /** 다음 산행 추천 — core 는 코스 · 날씨 · 프로필을 주입받는다 */
   function recommendNext() {
-    var info = HHC.weatherInfo;
-    return core.recommendNext({
-      records: state.records,
-      profile: state.profile,
-      courses: HHC.COURSES,
-      weather: info.weather,            /* 예보 범위를 넘으면 null */
-      targetDateLabel: info.target.label
+    return cached('recommend', function () {
+      var info = HHC.weatherInfo;
+      return core.recommendNext({
+        records: state.records,
+        profile: state.profile,
+        courses: HHC.COURSES,
+        weather: info.weather,            /* 예보 범위를 넘으면 null */
+        targetDateLabel: info.target.label
+      });
     });
   }
 
@@ -124,9 +147,20 @@ window.HHC = window.HHC || {};
     });
   }
 
-  /* ============ 데모 시드 (생성은 core, 저장은 이 어댑터) ============ */
+  /* ============ 데모 시드 (생성은 core, 저장은 이 어댑터) ============
+     ISSUE-012: 데모 생성기는 별도 번들(core-demo.iife.js)에 있다.
+     프로덕션 빌드에서 그 스크립트를 빼면 아래 함수는 사용할 수 없고,
+     화면에서도 데모 섹션이 표시되지 않는다. */
+  function hasDemo() {
+    return !!(window.HHCCoreDemo && window.HHCCoreDemo.createDemoState);
+  }
+
   function seedDemo(kind) {
-    var seed = core.createDemoState({
+    if (!hasDemo()) {
+      console.warn('[HHC] 데모 번들이 로드되지 않았습니다 (개발 전용).');
+      return state;
+    }
+    var seed = window.HHCCoreDemo.createDemoState({
       kind: kind,
       courses: HHC.COURSES,
       existingProfile: state.profile
@@ -156,6 +190,7 @@ window.HHC = window.HHC || {};
     recommendNext: recommendNext,
     buildGoalPlan: buildGoalPlan,
     seedDemo: seedDemo,
+    hasDemo: hasDemo,
     /* 포맷터는 core 의 것을 그대로 노출 (기존 경로 HHC.store.utils.* 유지) */
     utils: {
       fmtDur: core.fmtDur,

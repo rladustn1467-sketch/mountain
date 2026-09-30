@@ -92,12 +92,14 @@ export interface Course {
 }
 
 /* ------------------------------ 날씨 ------------------------------ */
+import type { IconKey } from './icons';
+
 export interface Weather {
   /** 표시용 날짜 라벨 — 대상 산행일에서 파생한다 (ISSUE-004 해소) */
   date: string;
   condition: string;
-  /** 표현 계층용 아이콘 키 — ISSUE-006 */
-  icon: string;
+  /** 의미 기반 아이콘 키. 플랫폼이 실제 아이콘으로 매핑한다 (ISSUE-006 해소) */
+  icon: IconKey;
   tempMin: number;
   tempMax: number;
   humidity: number;
@@ -211,8 +213,8 @@ export function hasStatsData(s: Stats): s is StatsFull {
 
 /* ------------------------------ AI 분석 ------------------------------ */
 export interface AnalysisPoint {
-  /** 표현 계층용 아이콘 키 — ISSUE-006 */
-  icon: string;
+  /** 의미 기반 아이콘 키. 플랫폼이 실제 아이콘으로 매핑한다 (ISSUE-006 해소) */
+  icon: IconKey;
   /** ISSUE-005: 한국어 + HTML 태그를 포함한다. Phase 2 에서 분리 */
   text: string;
 }

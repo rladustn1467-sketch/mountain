@@ -16,7 +16,7 @@ import type { WeatherProvider } from '../weather';
 /** mock 날씨 조건 — 날짜를 제외한 부분. 값은 원본과 동일하다. */
 export const MOCK_CONDITIONS: Omit<Weather, 'date'> = {
   condition: '맑음',
-  icon: 'fa-sun',
+  icon: 'weather-clear',
   tempMin: 8,
   tempMax: 15,
   humidity: 52,

@@ -47,9 +47,13 @@
 <!-- 도메인 코어 (@hhc/core) — 전역 HHCCore 를 노출한다. 앱 스크립트보다 먼저 로드해야 한다.
      빌드: npm run core:build  (npm run dev / build / smoke 가 자동 실행) -->
 <script src="packages/core/dist/core.iife.js"></script>
+<!-- 데모 시드 (개발 전용, ISSUE-012) — 프로덕션 빌드에서는 이 줄을 제거한다.
+     없어도 앱은 정상 동작하며 "프로토타입 체험" 섹션만 표시되지 않는다. -->
+<script src="packages/core/dist/core-demo.iife.js"></script>
 
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
+<script src="js/icons.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/screens/onboarding.js"></script>

@@ -216,8 +216,8 @@
             <p class="setting-desc" style="margin-top:8px;text-align:center">초기화하면 프로필과 산행 기록이 모두 삭제되고 온보딩부터 다시 시작합니다.</p>
           </section>
 
-          <!-- 프로토타입 체험용 데모 데이터 -->
-          <section class="card card--inset">
+          <!-- 프로토타입 체험용 데모 데이터 (개발 전용 번들이 있을 때만, ISSUE-012) -->
+          ${!store.hasDemo() ? '' : `<section class="card card--inset">
             <div class="card__head" style="margin-bottom:var(--sp-3)">
               <div><h2 class="card__title" style="font-size:var(--fs-md)"><i class="fa-solid fa-flask"></i> 프로토타입 체험</h2>
               <p class="card__sub">3단계 UX 상태를 즉시 전환해 확인할 수 있습니다</p></div>
@@ -235,7 +235,7 @@
               </button>
             </div>
             <p class="setting-desc" style="margin-top:10px">데모 기록은 실제 기록과 동일하게 계산되어 모든 통계 · AI 분석 · 추천에 반영됩니다.</p>
-          </section>
+          </section>`}
 
           <div class="card card--inset">
             <div class="inline" style="gap:var(--sp-3);align-items:flex-start">

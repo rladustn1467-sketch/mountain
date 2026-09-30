@@ -168,18 +168,29 @@ js/screens/home.js        "N회 기록 + 산행 간격 M일 + 날씨 반영"
 
 ---
 
-## ISSUE-006 🟢 아이콘 키가 Font Awesome 클래스명에 묶임
+## ~~ISSUE-006~~ ✅ 아이콘 키가 Font Awesome 클래스명에 묶임 — 해소됨
 
-`AnalysisPoint.icon` 과 `Weather.icon` 이 `'fa-mountain'`, `'fa-sun'` 같은
-Font Awesome 클래스명이다.
+core 는 이제 의미 키만 내보내고, 실제 아이콘 매핑은 플랫폼이 담당한다.
 
 ```
-packages/core/src/analysis/index.ts
-packages/core/src/fixtures/weather.ts
+packages/core/src/icons.ts   IconKey 17종 · ICON_KEYS
+js/icons.js                  HHC.icons.fa()  의미 키 → Font Awesome 클래스
 ```
 
-모바일에서는 Font Awesome 클래스를 쓰지 않으므로 core 가 특정 아이콘 세트에
-종속된 상태다. 의미 키(`'trend-up'`) + 플랫폼별 매핑 테이블로 바꿔야 한다.
+| | 값 |
+|---|---|
+| core | `'trend-up'` |
+| 웹 | `fa-arrow-trend-up` |
+| 모바일 | 같은 키를 자신의 아이콘 세트로 매핑 (core 수정 불필요) |
+
+`AnalysisPoint.icon` · `Weather.icon` 의 타입이 `string` → `IconKey` 로 좁혀져
+정의되지 않은 키는 컴파일에서 걸린다. 웹 매핑 누락은 `HHC.icons.missingKeys()` 가
+찾아내고 스모크 테스트가 검사한다.
+
+화면 계층이 `'fa-house'` 처럼 Font Awesome 클래스를 직접 쓰는 것은 그대로
+허용한다(웹 전용 계층이므로). `fa()` 가 `fa-` 접두어를 그대로 통과시킨다.
+
+**렌더 출력은 이전과 동일하다** (매핑이 1:1).
 
 ---
 
@@ -319,14 +330,29 @@ packages/core/src/state/defaults.ts   mergeState()
 
 ---
 
-## ISSUE-012 🟢 데모 시드가 프로덕션 번들에 포함
+## ~~ISSUE-012~~ ✅ 데모 시드가 프로덕션 번들에 포함 — 해소됨
+
+데모 생성기를 **별도 엔트리**로 분리했다.
 
 ```
-packages/core/src/demo/index.ts
-js/screens/profile.js   "프로토타입 체험" 섹션
+packages/core/src/demo-entry.ts        개발 전용 엔트리
+packages/core/vite.config.demo.mjs     별도 빌드 설정
+
+dist/core.iife.js       21.5kB  window.HHCCore       프로덕션 포함
+dist/core-demo.iife.js   1.3kB  window.HHCCoreDemo   개발 전용
 ```
 
-실제 서비스로 갈 때 개발 빌드 전용 엔트리로 분리해야 한다.
+`createDemoState` 가 메인 번들에서 제거되었다(스모크 테스트가 검사).
+
+프로덕션 빌드에서 제외하는 방법 — 두 곳에서 빼면 된다:
+
+1. `index.html` 의 `core-demo.iife.js` 스크립트 태그
+2. `vite.config.mjs` `copyLegacyAssets` 의 복사 목록
+
+빠진 상태에서도 앱은 정상 동작한다. `store.hasDemo()` 가 `false` 가 되고
+마이 화면의 "프로토타입 체험" 섹션이 렌더되지 않는다.
+
+현재 프로토타입 단계에서는 둘 다 로드하므로 **동작은 이전과 동일**하다.
 
 ---
 
@@ -423,29 +449,37 @@ localStorage quota 초과 시 아무 일도 하지 않는다. 사용자는 기�
 
 ---
 
-## ISSUE-015 🟢 SVG gradient ID 중복
+## ~~ISSUE-015~~ ✅ SVG gradient ID 중복 — 해소됨
 
-모든 고도 프로필 차트가 `id="elevFill"` 을 사용한다.
+`js/charts.js` 가 인스턴스별 고유 id 를 발급한다 (`elevFill-1`, `terrain-2` …).
+`elevation()` 과 `trailMap()` 양쪽에 적용했다.
 
-```
-js/charts.js   elevation()
-```
+시각적 출력은 그대로이고 id 문자열만 달라진다. 이제 코스별 · 난이도별로
+그라디언트 색을 분기해도 서로 간섭하지 않는다.
 
-`records` 화면에서 동일 ID 가 6~7개 렌더된다(스모크 테스트가 관측값으로 추적 중).
-현재는 색이 같아 증상이 보이지 않지만, 코스별·난이도별 색을 분기하면 전부 깨진다.
+스모크 테스트가 (1) id 유일성과 (2) 모든 `url(#...)` 참조가 같은 문서 안의
+id 를 가리키는지 검사한다.
 
 ---
 
-## ISSUE-016 🟡 `getStats()` / `recommendNext()` 중복 호출
+## ~~ISSUE-016~~ ✅ `getStats()` / `recommendNext()` 중복 호출 — 해소됨
 
-한 화면을 그리는 동안 여러 번 재계산된다.
+`js/store.js` 가 파생값을 캐시한다. **계산식과 결과는 바뀌지 않고 호출 횟수만 줄어든다.**
 
 ```
-js/screens/home.js:227  recommend.js:54  course-detail:126  analysis:439  patterns:269
+캐시 대상   getStats · buildAnalysis · recommendNext
+무효화      모든 상태 변경 (persist() 안에서 버전 증가)
+캐시 키     상태 버전 + 한국 달력 일자  ← 자정을 넘기면 자동 무효화
 ```
 
-지금은 기록 수가 적어 문제되지 않지만, 서버 fetch 로 바뀌면 N+1 요청이 된다.
-Phase 1 에서 `pickReason()` 이 코스마다 통계를 재계산하지 않도록만 정리했다.
+core 의 순수 함수 출력이므로 "상태가 그대로면 결과도 그대로" 가 성립한다.
+날짜 의존 값(`daysSinceLast` · 예정일)이 있으므로 캐시 키에 KST 일자를 넣었다.
+
+스모크 테스트가 (1) 반복 호출 결과 동일 (2) core 직접 호출과 값 일치
+(3) 기록 추가 · 삭제 시 캐시 무효화를 검사한다.
+
+Phase 1 에서 `pickReason()` 이 코스마다 통계를 재계산하지 않도록 정리한 것에 이어,
+화면 단위 중복 계산까지 제거했다.
 
 ---
 

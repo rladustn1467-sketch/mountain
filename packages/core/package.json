@@ -14,9 +14,12 @@
       "default": "./dist/core.mjs"
     }
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
-    "build": "vite build && npm run build:types",
+    "build": "vite build && vite build --config vite.config.demo.mjs && npm run build:types",
     "build:types": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint:purity": "node scripts/check-purity.mjs"

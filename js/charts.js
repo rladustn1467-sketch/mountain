@@ -21,15 +21,24 @@ HHC.charts = (function () {
   var core = window.HHCCore;
   if (!core) throw new Error('[HHC] @hhc/core 번들이 로드되지 않았습니다.');
 
+  /* SVG 내부 참조(url(#...))용 고유 id 발급 — ISSUE-015.
+     한 화면에 같은 차트가 여러 개 렌더될 때(예: 기록 목록의 고도 프로필)
+     동일한 id 가 중복되면 브라우저가 첫 정의만 사용한다. 지금은 색이 같아
+     증상이 보이지 않지만, 코스별 · 난이도별 색을 분기하면 전부 깨진다.
+     시각적 출력은 그대로이고 id 문자열만 달라진다. */
+  var uid = 0;
+  function nextId(prefix) { uid += 1; return prefix + '-' + uid; }
+
   /* ---------------------- 고도 프로필 (area chart) ---------------------- */
   function elevation(values, opts) {
     var g = core.elevationGeometry(values, opts || {});
+    var fillId = nextId('elevFill');
 
     return `<svg class="chart-box--elev" viewBox="0 0 ${g.width} ${g.height}" preserveAspectRatio="none"
       style="width:100%;height:${g.height}px;display:block" role="img"
       aria-label="고도 프로필, 최고 ${g.max}m">
       <defs>
-        <linearGradient id="elevFill" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id="${fillId}" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="var(--color-primary)" stop-opacity=".30"/>
           <stop offset="100%" stop-color="var(--color-primary)" stop-opacity=".02"/>
         </linearGradient>
@@ -38,7 +47,7 @@ HHC.charts = (function () {
         <line x1="0" y1="${g.gridY[0]}" x2="${g.width}" y2="${g.gridY[0]}"/>
         <line x1="0" y1="${g.gridY[1]}" x2="${g.width}" y2="${g.gridY[1]}"/>
       </g>
-      <path d="${g.areaPath}" fill="url(#elevFill)"/>
+      <path d="${g.areaPath}" fill="url(#${fillId})"/>
       <path d="${g.linePath}" fill="none" stroke="var(--color-primary)" stroke-width="2.4"
         stroke-linecap="round" stroke-linejoin="round"/>
       <circle cx="${g.peak.x.toFixed(1)}" cy="${g.peak.y.toFixed(1)}" r="4"
@@ -93,15 +102,16 @@ HHC.charts = (function () {
   /* ---------------------- 지도 + 트레일 경로 (프로토타입) ---------------------- */
   function trailMap(progress) {
     var g = core.trailGeometry(progress);
+    var terrainId = nextId('terrain');
 
     return `<svg viewBox="0 0 ${g.viewWidth} ${g.viewHeight}" preserveAspectRatio="xMidYMid slice" aria-label="등산로 경로 프로토타입">
       <defs>
-        <linearGradient id="terrain" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id="${terrainId}" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stop-color="var(--color-primary-100)" stop-opacity=".9"/>
           <stop offset="100%" stop-color="var(--color-secondary-100)" stop-opacity=".65"/>
         </linearGradient>
       </defs>
-      <rect width="${g.viewWidth}" height="${g.viewHeight}" fill="url(#terrain)"/>
+      <rect width="${g.viewWidth}" height="${g.viewHeight}" fill="url(#${terrainId})"/>
       <g fill="none" stroke="var(--color-primary-300)" stroke-opacity=".45" stroke-width="1">
         ${g.contours.map((d) => `<path d="${d}"/>`).join('\n        ')}
       </g>

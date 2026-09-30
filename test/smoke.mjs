@@ -340,10 +340,87 @@ dom.window.addEventListener('load', () => {
     return 'elevation · sparkline · bars 확인';
   });
 
+  /* ---- 7b) SVG 내부 참조 id 유일성 (ISSUE-015) ---- */
+  check('SVG gradient id 유일 (ISSUE-015)', () => {
+    HHC.router.go('records');
+    const html = view();
+    const ids = (html.match(/id="(elevFill|terrain)[^"]*"/g) || []);
+    const uniq = new Set(ids);
+    if (ids.length !== uniq.size) throw new Error(`id ${ids.length}개 중 중복 ${ids.length - uniq.size}개`);
+    /* 모든 url(#..) 참조가 같은 문서 안의 id 를 가리켜야 한다 */
+    const refs = (html.match(/url\(#([^)]+)\)/g) || []).map((r) => r.slice(5, -1));
+    for (const ref of refs) {
+      if (!html.includes(`id="${ref}"`)) throw new Error(`참조 ${ref} 에 대응하는 id 없음`);
+    }
+    if (!ids.length) throw new Error('검사 대상 id 가 없다 (렌더 실패?)');
+    return `id ${ids.length}개 전부 유일 · 참조 ${refs.length}건 정합`;
+  });
+
+  /* ---- 7c) 아이콘 키 매핑 (ISSUE-006) ---- */
+  check('아이콘 의미 키 → 웹 매핑 (ISSUE-006)', () => {
+    const C = window.HHCCore;
+    const missing = HHC.icons.missingKeys();
+    if (missing.length) throw new Error(`웹 매핑 누락: ${missing.join(', ')}`);
+
+    /* core 는 Font Awesome 클래스명을 내보내지 않는다 */
+    const a = C.buildAnalysis(HHC.store.get().records);
+    for (const pt of a.points) {
+      if (String(pt.icon).startsWith('fa-')) throw new Error(`core 가 fa- 클래스를 내보냈다: ${pt.icon}`);
+      if (!C.ICON_KEYS.includes(pt.icon)) throw new Error(`정의되지 않은 아이콘 키: ${pt.icon}`);
+    }
+    /* 렌더 결과에는 fa- 클래스가 들어가야 한다 */
+    const rendered = HHC.ui.aiPoints(a.points);
+    if (a.points.length && !/fa-solid fa-[a-z-]+/.test(rendered)) {
+      throw new Error('렌더 결과에 Font Awesome 클래스가 없다');
+    }
+    if (HHC.icons.fa('trend-up') !== 'fa-arrow-trend-up') throw new Error('매핑 값 불일치');
+    if (HHC.icons.fa('fa-house') !== 'fa-house') throw new Error('fa- 직접 지정은 통과해야 한다');
+    return `키 ${C.ICON_KEYS.length}종 · 누락 0`;
+  });
+
+  /* ---- 7d) 파생값 캐시가 결과를 바꾸지 않는다 (ISSUE-016) ---- */
+  check('파생값 캐시 정합성 (ISSUE-016)', () => {
+    const C = window.HHCCore;
+    const snap = () => JSON.stringify([
+      HHC.store.getStats(), HHC.store.buildAnalysis(), HHC.store.recommendNext()
+    ]);
+
+    /* 같은 상태에서 반복 호출 → 동일 */
+    const a = snap();
+    if (snap() !== a) throw new Error('같은 상태인데 결과가 달라졌다');
+
+    /* 캐시가 core 직접 호출과 같은 값을 주는가 */
+    const direct = JSON.stringify(C.getStats(HHC.store.get().records));
+    if (JSON.stringify(HHC.store.getStats()) !== direct) throw new Error('캐시 값이 core 직접 호출과 다르다');
+
+    /* 상태를 바꾸면 캐시가 버려져야 한다 */
+    const beforeCount = HHC.store.getStats().count;
+    HHC.store.addRecord({ courseId: 'inwangsan', name: '캐시검증', distance: 4.2,
+      duration: 6000, ascent: 320, descent: 300, avgPace: 23.8, calories: 330,
+      level: 1, maxAlt: 336, paceStability: 80, splits: [] });
+    if (HHC.store.getStats().count !== beforeCount + 1) throw new Error('상태 변경 후 캐시가 갱신되지 않았다');
+    if (snap() === a) throw new Error('상태가 바뀌었는데 결과가 같다');
+
+    HHC.store.deleteRecord(HHC.store.get().records.find((r) => r.name === '캐시검증').id);
+    if (HHC.store.getStats().count !== beforeCount) throw new Error('삭제 후 캐시가 갱신되지 않았다');
+    return '반복 호출 동일 · 변경 시 무효화 확인';
+  });
+
+  /* ---- 7e) 데모 시드 번들 분리 (ISSUE-012) ---- */
+  check('데모 시드 별도 번들 (ISSUE-012)', () => {
+    const C = window.HHCCore;
+    if ('createDemoState' in C) throw new Error('메인 번들에 데모 생성기가 남아 있다');
+    if (!window.HHCCoreDemo || !window.HHCCoreDemo.createDemoState) {
+      throw new Error('개발 전용 데모 번들이 로드되지 않았다');
+    }
+    if (!HHC.store.hasDemo()) throw new Error('store.hasDemo() 가 false');
+    return 'HHCCore 에서 제거 · HHCCoreDemo 로 분리';
+  });
+
   /* ---- 8) 알려진 구조적 이슈 추적 (실패 아님, 관측값) ---- */
   HHC.router.go('records');
   const html = view();
-  const dupElevFill = (html.match(/id="elevFill"/g) || []).length;
+  const elevFillIds = (html.match(/id="elevFill[^"]*"/g) || []).length;
 
   /* ---- 9) 전역 오염 검사 ---- */
   check('전역 오염 없음 (window.HHC 외)', () => {
@@ -352,7 +429,7 @@ dom.window.addEventListener('load', () => {
     return 'clean';
   });
 
-  report({ dupElevFill, svgCount: (html.match(/<svg/g) || []).length });
+  report({ elevFillIds, svgCount: (html.match(/<svg/g) || []).length });
 });
 
 function report(observed) {
@@ -364,7 +441,7 @@ function report(observed) {
 
   if (observed) {
     console.log('\n── 관측값 (알려진 이슈 추적) ' + '─'.repeat(28));
-    console.log(`  records 화면 SVG ${observed.svgCount}개 / 중복 id="elevFill" ${observed.dupElevFill}개`);
+    console.log(`  records 화면 SVG ${observed.svgCount}개 / elevFill id ${observed.elevFillIds}개 (전부 유일)`);
   }
 
   if (noise.length) {

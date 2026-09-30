@@ -223,18 +223,18 @@
   function buildSingleComment(r, prev) {
     const out = [];
     if (!prev) {
-      out.push({ icon: 'fa-flag', text: `기준선 기록 · ${r.distance.toFixed(1)}km · ${U.fmtDur(r.duration)} · +${r.ascent}m` });
-      out.push({ icon: 'fa-brain', text: '이 기록을 기준으로 다음 산행 난이도를 계산합니다.' });
+      out.push({ icon: 'flag', text: `기준선 기록 · ${r.distance.toFixed(1)}km · ${U.fmtDur(r.duration)} · +${r.ascent}m` });
+      out.push({ icon: 'brain', text: '이 기록을 기준으로 다음 산행 난이도를 계산합니다.' });
       return out;
     }
     const d = ((r.distance - prev.distance) / prev.distance) * 100;
-    out.push({ icon: d >= 0 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down',
+    out.push({ icon: d >= 0 ? 'trend-up' : 'trend-down',
       text: `이전 산행보다 거리는 약 ${Math.abs(d).toFixed(0)}% ${d >= 0 ? '증가' : '감소'}했습니다.` });
     const a = ((r.ascent - prev.ascent) / prev.ascent) * 100;
-    out.push({ icon: 'fa-mountain', text: `고도 상승은 ${Math.abs(a).toFixed(0)}% ${a >= 0 ? '늘었습니다' : '줄었습니다'}.` });
-    out.push({ icon: 'fa-wave-square', text: `페이스 안정성 ${r.paceStability || '—'}/100 · 오르막 구간 리듬이 ${(r.paceStability || 0) >= 75 ? '안정적이었습니다' : '다소 불규칙했습니다'}.` });
+    out.push({ icon: 'mountain', text: `고도 상승은 ${Math.abs(a).toFixed(0)}% ${a >= 0 ? '늘었습니다' : '줄었습니다'}.` });
+    out.push({ icon: 'pace-stability', text: `페이스 안정성 ${r.paceStability || '—'}/100 · 오르막 구간 리듬이 ${(r.paceStability || 0) >= 75 ? '안정적이었습니다' : '다소 불규칙했습니다'}.` });
     const gap = Math.round((r.date - prev.date) / 86400000);
-    out.push({ icon: 'fa-calendar-days', text: `이전 산행 이후 ${gap}일 만의 산행입니다.` });
+    out.push({ icon: 'calendar', text: `이전 산행 이후 ${gap}일 만의 산행입니다.` });
     return out;
   }
 
