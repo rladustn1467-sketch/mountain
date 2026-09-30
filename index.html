@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="default" data-button-shape="pill">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f7558">
+<meta name="description" content="AI Hiking Health Coach — 산행할 때마다 데이터를 학습해 다음 산행을 더 정교하게 추천하는 AI 등산 코치">
+<title>AI Hiking Health Coach</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/screens.css">
+</head>
+<body>
+
+<!-- 배경 장식 : 등고선 + 은은한 글로우 -->
+<div class="app-bg" aria-hidden="true">
+  <svg class="app-bg__contour" viewBox="0 0 800 800" preserveAspectRatio="none">
+    <g fill="none" stroke="var(--contour-color)" stroke-width="1.1">
+      <path d="M-40 180 C 120 90, 260 300, 420 190 S 700 60, 880 200"/>
+      <path d="M-40 262 C 130 170, 270 380, 430 270 S 710 140, 890 280"/>
+      <path d="M-40 344 C 140 250, 280 460, 440 350 S 720 220, 900 360"/>
+      <path d="M-40 426 C 150 330, 290 540, 450 430 S 730 300, 910 440"/>
+      <path d="M-40 508 C 160 410, 300 620, 460 510 S 740 380, 920 520"/>
+      <path d="M-40 590 C 170 490, 310 700, 470 590 S 750 460, 930 600"/>
+      <path d="M-40 672 C 180 570, 320 780, 480 670 S 760 540, 940 680"/>
+    </g>
+  </svg>
+  <span class="app-bg__glow app-bg__glow--a"></span>
+  <span class="app-bg__glow app-bg__glow--b"></span>
+</div>
+
+<div class="app-shell">
+  <div class="phone" id="phone">
+    <main class="view" id="view" role="main" aria-live="polite"></main>
+    <nav class="tabbar hide" id="tabbar" aria-label="주요 메뉴"></nav>
+    <div class="toast-layer" id="toast-layer" aria-live="polite"></div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/screens/onboarding.js"></script>
+<script src="js/screens/home.js"></script>
+<script src="js/screens/recommend.js"></script>
+<script src="js/screens/hiking.js"></script>
+<script src="js/screens/records.js"></script>
+<script src="js/screens/profile.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

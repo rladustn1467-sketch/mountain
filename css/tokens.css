@@ -1,0 +1,266 @@
+/* ==========================================================================
+   AI Hiking Health Coach — DESIGN TOKENS
+   --------------------------------------------------------------------------
+   모든 색상 / 형태 / 타이포는 이 파일의 CSS 변수만으로 제어됩니다.
+   테마를 바꾸고 싶으면 html[data-theme="..."] 프리셋을 바꾸거나
+   :root 에서 --color-primary-500 같은 토큰 값만 수정하면
+   앱 전체 UI(버튼 / 카드 / 그래프 / 내비게이션 / 아이콘 색)가 함께 바뀝니다.
+   ========================================================================== */
+
+:root {
+  /* ---------- 1. Brand : Primary (자연 · 그린) ---------- */
+  --color-primary-50:  #eff7f2;
+  --color-primary-100: #d8ede2;
+  --color-primary-200: #b2dbc7;
+  --color-primary-300: #86c4a7;
+  --color-primary-400: #5aa987;
+  --color-primary-500: #3b8e6b;
+  --color-primary-600: #2f7558;
+  --color-primary-700: #256047;
+  --color-primary-800: #1c4a36;
+  --color-primary-900: #133326;
+
+  /* ---------- 2. Brand : Secondary (트레킹 블루) ---------- */
+  --color-secondary-50:  #eef4fb;
+  --color-secondary-100: #d6e6f7;
+  --color-secondary-200: #aeceef;
+  --color-secondary-300: #7fb0e3;
+  --color-secondary-400: #5190d4;
+  --color-secondary-500: #2f73bf;
+  --color-secondary-600: #235c9e;
+  --color-secondary-700: #1b477c;
+  --color-secondary-800: #14355c;
+  --color-secondary-900: #0e2540;
+
+  /* ---------- 3. Accent (에너지 · 데이터 하이라이트) ---------- */
+  --color-accent-100: #fdf3e3;
+  --color-accent-300: #f7c877;
+  --color-accent-500: #e2941f;
+  --color-accent-700: #a9690f;
+
+  /* ---------- 4. Neutrals : Background / Surface / Card / Text ---------- */
+  --color-bg:         #f4f7f3;
+  --color-bg-deep:    #e9efe8;
+  --color-surface:    #ffffff;
+  --color-surface-2:  #edf2ec;
+  --color-surface-3:  #e3eae2;
+  --color-card:       #ffffff;
+  --color-card-alt:   #f7faf7;
+  --color-border:     #e1e9e2;
+  --color-border-strong: #cfdad1;
+
+  --color-text:       #14241d;
+  --color-text-muted: #5a6b62;
+  --color-text-faint: #8b9a92;
+  --color-text-invert:#f6fbf8;
+
+  /* ---------- 5. Semantic ---------- */
+  --color-success: var(--color-primary-500);
+  --color-warning: #d98324;
+  --color-danger:  #cf4d4d;
+  --color-info:    var(--color-secondary-500);
+
+  /* ---------- 6. Brand application tokens ---------- */
+  --color-primary:        var(--color-primary-500);
+  --color-primary-strong: var(--color-primary-700);
+  --color-primary-soft:   var(--color-primary-50);
+  --color-primary-tint:   rgba(59, 142, 107, 0.10);
+  --color-secondary:      var(--color-secondary-500);
+  --color-secondary-soft: var(--color-secondary-50);
+  --color-accent:         var(--color-accent-500);
+
+  /* ---------- 7. Gradients (절제된 사용) ---------- */
+  --grad-hero: linear-gradient(155deg, #1c4a36 0%, #2f7558 46%, #4a9b78 100%);
+  --grad-ai: linear-gradient(140deg, #20513c 0%, #2f7558 55%, #3f8f6d 100%);
+  --grad-sky: linear-gradient(160deg, #dcebfa 0%, #f2f7f4 90%);
+  --grad-warm: linear-gradient(150deg, #fdf3e3 0%, #f7faf7 95%);
+  --grad-card-sheen: linear-gradient(135deg, rgba(255,255,255,.65), rgba(255,255,255,0) 55%);
+
+  /* ---------- 8. Radius ---------- */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+  --radius-btn: var(--radius-pill);
+  --radius-card: var(--radius-lg);
+
+  /* ---------- 9. Elevation ---------- */
+  --shadow-1: 0 1px 2px rgba(20, 36, 29, .06), 0 1px 3px rgba(20, 36, 29, .04);
+  --shadow-2: 0 4px 14px rgba(20, 36, 29, .07), 0 1px 3px rgba(20, 36, 29, .04);
+  --shadow-3: 0 12px 34px rgba(20, 36, 29, .12), 0 2px 8px rgba(20, 36, 29, .06);
+  --shadow-primary: 0 8px 22px rgba(47, 117, 88, .28);
+
+  /* ---------- 10. Typography ---------- */
+  --font-sans: "Inter", "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Inter", "Noto Sans KR", sans-serif;
+  --fs-3xs: 10px;
+  --fs-2xs: 11px;
+  --fs-xs:  12px;
+  --fs-sm:  13px;
+  --fs-md:  15px;
+  --fs-lg:  17px;
+  --fs-xl:  20px;
+  --fs-2xl: 24px;
+  --fs-3xl: 30px;
+  --fs-4xl: 38px;
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-semibold:600;
+  --fw-bold:    700;
+  --fw-black:   800;
+  --lh-tight: 1.2;
+  --lh-normal: 1.5;
+  --lh-loose: 1.7;
+  --ls-tight: -0.02em;
+  --ls-wide: 0.04em;
+
+  /* ---------- 11. Spacing / layout ---------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 32px;
+  --sp-8: 40px;
+  --app-width: 448px;
+  --nav-height: 66px;
+
+  /* ---------- 12. Motion ---------- */
+  --ease-out: cubic-bezier(.22, .61, .36, 1);
+  --dur-fast: 140ms;
+  --dur-mid: 260ms;
+  --dur-slow: 420ms;
+
+  /* ---------- 13. Decorative graphics (등고선 / 능선) ---------- */
+  --contour-color: rgba(59, 142, 107, 0.16);
+  --ridge-fill: var(--color-primary-100);
+  --hero-overlay: linear-gradient(180deg, rgba(12,32,24,.05) 0%, rgba(12,32,24,.42) 58%, rgba(10,26,20,.82) 100%);
+}
+
+/* ==========================================================================
+   THEME PRESETS —  html[data-theme="..."]
+   값을 바꾸면 앱 전체가 즉시 함께 변경됩니다.
+   ========================================================================== */
+
+/* 1) Deep Forest — 더 어둡고 프리미엄한 그린 */
+html[data-theme="deep-forest"] {
+  --color-primary-500: #2b7a58;
+  --color-primary-600: #226349;
+  --color-primary-700: #1a4f3b;
+  --color-primary-800: #123a2b;
+  --color-primary-300: #7fb99f;
+  --color-primary-100: #d3e8dd;
+  --color-primary-50:  #e9f3ee;
+  --color-bg: #eff4f0;
+  --color-surface-2: #e5ece7;
+  --grad-hero: linear-gradient(155deg, #10301f 0%, #1f5c42 48%, #368a66 100%);
+  --grad-ai: linear-gradient(140deg, #163f2c 0%, #226349 55%, #348060 100%);
+  --color-primary-tint: rgba(43, 122, 88, 0.10);
+  --shadow-primary: 0 8px 22px rgba(34, 99, 73, .30);
+}
+
+/* 2) Navy Trail — 네이비 + 그린 포인트 */
+html[data-theme="navy-trail"] {
+  --color-primary-50:  #edf1f7;
+  --color-primary-100: #d7e0ee;
+  --color-primary-200: #b0c1dd;
+  --color-primary-300: #8199c4;
+  --color-primary-400: #5570a4;
+  --color-primary-500: #2f4a7d;
+  --color-primary-600: #263d68;
+  --color-primary-700: #1d304f;
+  --color-primary-800: #16253c;
+  --color-primary-900: #101b2b;
+  --color-accent-500: #2f9d76;
+  --color-accent-100: #e6f4ee;
+  --color-bg: #f2f4f8;
+  --color-surface-2: #e8ecf3;
+  --color-surface-3: #dde3ec;
+  --color-border: #dde3ec;
+  --color-card-alt: #f8fafc;
+  --color-text: #14202f;
+  --color-text-muted: #5b6a7d;
+  --color-text-faint: #93a0b0;
+  --color-secondary-500: #3f8f6d;
+  --color-secondary-700: #276048;
+  --grad-hero: linear-gradient(155deg, #10202f 0%, #1d304f 45%, #34557f 100%);
+  --grad-ai: linear-gradient(140deg, #16253c 0%, #263d68 52%, #3b6094 100%);
+  --color-primary-tint: rgba(47, 74, 125, 0.10);
+  --contour-color: rgba(47, 74, 125, 0.15);
+  --shadow-primary: 0 8px 22px rgba(29, 48, 79, .30);
+}
+
+/* 3) Slate Minimal — 차분한 미니멀 + 틸 */
+html[data-theme="slate"] {
+  --color-primary-50:  #eef2f2;
+  --color-primary-100: #dbe4e3;
+  --color-primary-200: #bccbc9;
+  --color-primary-300: #94aca9;
+  --color-primary-400: #6b8b87;
+  --color-primary-500: #3f6b66;
+  --color-primary-600: #345955;
+  --color-primary-700: #294643;
+  --color-primary-800: #1f3633;
+  --color-primary-900: #162725;
+  --color-bg: #f6f7f7;
+  --color-surface-2: #eceeee;
+  --color-border: #e4e8e7;
+  --color-accent-500: #c98a3c;
+  --color-text: #1b2423;
+  --color-text-muted: #63706f;
+  --grad-hero: linear-gradient(155deg, #1f3633 0%, #345955 50%, #4d807a 100%);
+  --grad-ai: linear-gradient(140deg, #223b38 0%, #35605b 55%, #4c837d 100%);
+  --color-primary-tint: rgba(63, 107, 102, 0.10);
+  --contour-color: rgba(63, 107, 102, 0.14);
+}
+
+/* 4) Midnight — 다크 모드 */
+html[data-theme="midnight"] {
+  --color-bg: #0d1512;
+  --color-bg-deep: #0a100e;
+  --color-surface: #141e1a;
+  --color-surface-2: #1a2621;
+  --color-surface-3: #223029;
+  --color-card: #16211c;
+  --color-card-alt: #131d19;
+  --color-border: #26332c;
+  --color-border-strong: #33433a;
+  --color-text: #eaf3ee;
+  --color-text-muted: #9db1a7;
+  --color-text-faint: #6e8378;
+  --color-text-invert: #f6fbf8;
+  --color-primary-50:  #14241d;
+  --color-primary-100: #1c3229;
+  --color-primary-200: #274537;
+  --color-primary-300: #56ab86;
+  --color-primary-400: #46a17c;
+  --color-primary-500: #45b086;
+  --color-primary-600: #57c095;
+  --color-primary-700: #7ed3ae;
+  --color-primary-soft: #17251f;
+  --color-primary-tint: rgba(69, 176, 134, 0.14);
+  --color-surface-2: #1a2621;
+  --grad-hero: linear-gradient(155deg, #07120d 0%, #10301f 48%, #1e6b4c 100%);
+  --grad-ai: linear-gradient(140deg, #0e2a1e 0%, #1a5138 55%, #28805c 100%);
+  --grad-sky: linear-gradient(160deg, #16222b 0%, #141e1a 90%);
+  --grad-warm: linear-gradient(150deg, #241d12 0%, #16211c 95%);
+  --shadow-1: 0 1px 2px rgba(0,0,0,.4);
+  --shadow-2: 0 4px 16px rgba(0,0,0,.45);
+  --shadow-3: 0 14px 36px rgba(0,0,0,.55);
+  --contour-color: rgba(87, 192, 149, 0.14);
+  --color-accent-100: #2a2113;
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   LIVE OVERRIDES — 설정 화면의 커스텀 컨트롤이 여기에 값을 주입합니다.
+   ( js/settings.js → applyCustomTokens )
+   ========================================================================== */
+
+/* 버튼 형태 토큰 변형 */
+html[data-button-shape="rounded"] { --radius-btn: 14px; }
+html[data-button-shape="pill"]    { --radius-btn: 999px; }
+html[data-button-shape="square"]  { --radius-btn: 6px; }
