@@ -26,6 +26,7 @@ Phase 1(도메인 코어 분리) 과정에서 발견했으나 **의도적으로 
 | **예보 없음 기본 표시** | ISSUE-004. 화면 흐름과 데이터 연동 상태를 확인한 뒤 결정 |
 | **산행 예정일 선택 UI 위치** | ISSUE-004. 이동 가능한 구조로 구현되어 있음 (`ui.hikeDatePicker()` 호출 한 줄) |
 | **추세 분석 최소 기록 수** | ISSUE-008. 현재 3 (기존 값 승계), 통계적으로는 4 가 타당 |
+| **지도 API · 등산로 데이터 연동** | ISSUE-018 및 코스 스키마. 조사 결과는 [RESEARCH-map-and-trail-data.md](RESEARCH-map-and-trail-data.md) 참고 |
 
 ---
 
