@@ -130,42 +130,12 @@
     tabbar.render();
     bindGlobalDelegation();
 
-    /* 검증 하네스가 남긴 진입 라우트 (일회성) */
-    let pendingRoute = null;
-    try {
-      pendingRoute = localStorage.getItem('hhc.route');
-      localStorage.removeItem('hhc.route');
-    } catch (e) { /* ignore */ }
-
-    /* 딥링크가 있으면 그 지점으로 진입 */
+    /* 딥링크가 있으면 그 지점으로 진입 (#state= / #route=) */
     if (handleDeepLink()) {
       store.subscribe((s) => { theme.apply(s.prefs); });
       return;
     }
 
-    if (pendingRoute) {
-      const [name, param] = pendingRoute.split(':');
-      if (name === 'course-detail') router.reset(name, { course: param });
-      else if (name === 'hike-finish') router.reset('home');
-      else router.reset(name);
-      /* 검증/데모용 : 진행 중 산행 화면 자동 시작 */
-      if (name === 'hiking-live' && HHC.startHike) {
-        HHC.startHike();
-        for (let i = 0; i < 40; i++) HHC.hikeTick();
-        router.render();
-      }
-      /* 검증/데모용 : 산행 자동 종료 → 결과 화면 */
-      if (name === 'hike-finish' && HHC.startHike) {
-        HHC.startHike();
-        for (let i = 0; i < 400; i++) HHC.hikeTick();
-        router.render();
-        setTimeout(() => HHC.finishHike(), 60);
-      }
-      store.subscribe((s) => { theme.apply(s.prefs); });
-      return;
-    }
-
-    const state = store.get();
     /* 첫 진입 : 스플래시 → (프로필 있으면 홈 / 없으면 소개) */
     router.reset('splash');
 

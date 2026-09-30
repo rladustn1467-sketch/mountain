@@ -27,6 +27,9 @@
     tick: null
   };
 
+  /* 직전에 저장된 기록 id — hike-result 가 파라미터 없이 진입할 때의 폴백 */
+  let lastRecordId = null;
+
   function courseFromId(id) {
     return HHC.COURSES.find((c) => c.id === id) || HHC.COURSES[0];
   }
@@ -332,7 +335,7 @@
     const wasNew = !stats.hasData;
     session.active = false;
     session.paused = false;
-    window.__lastRecordId = rec.id;
+    lastRecordId = rec.id;
 
     router.replace('hike-result', { record: rec.id, first: wasNew ? '1' : '' });
     HHC.toast(wasNew ? '첫 산행 기록이 저장되었습니다!' : '산행 기록이 저장되었습니다', 'fa-circle-check');
@@ -351,7 +354,7 @@
         return `<section class="screen"><div class="screen__body">${ui.empty('산행 기록이 없습니다', '산행을 완료하면 결과가 여기에 표시됩니다.',
           `<button class="btn btn--primary" data-go="hiking">산행 시작</button>`)}</div></section>`;
       }
-      const rec = getRecord(params.record || window.__lastRecordId);
+      const rec = getRecord(params.record || lastRecordId);
       const stats = store.getStats();
       const prev = stats.records[stats.records.findIndex((r) => r.id === rec.id) + 1] || null;
       const dDelta = prev ? ((rec.distance - prev.distance) / prev.distance) * 100 : 0;

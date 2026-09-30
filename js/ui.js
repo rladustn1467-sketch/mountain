@@ -5,8 +5,6 @@
 window.HHC = window.HHC || {};
 
 /* ------------------------------ helpers ------------------------------ */
-HHC.h = function h(strings) { return strings; }; // (미사용, 템플릿 리터럴 사용)
-
 function esc(str) {
   return String(str == null ? '' : str)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
