@@ -1,0 +1,40 @@
+# ---------- OS ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- 에디터 / IDE ----------
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+
+# ---------- Node (향후 로컬 개발 서버 / 빌드 도입 시) ----------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# ---------- 빌드 산출물 ----------
+dist/
+build/
+.output/
+.vite/
+.cache/
+
+# ---------- 환경 변수 (절대 커밋하지 않음) ----------
+.env
+.env.*
+!.env.example
+
+# ---------- 로그 / 임시 ----------
+*.log
+tmp/
+temp/
+
+# ---------- 개발용 라우트 하네스 (프로토타입 QA 잔재) ----------
+# 삭제 여부가 확정되면 이 두 줄을 지우고 파일 자체를 제거할 예정
+# _r-*.html
