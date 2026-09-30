@@ -32,6 +32,15 @@ export type { RecommendInput, GoalPlanInput } from './recommend';
 /* 포맷 */
 export { fmtDur, fmtDurClock, fmtPace, fmtDate, fmtRelative } from './format';
 
+/* 차트 기하 (렌더는 플랫폼이 담당) */
+export {
+  elevationGeometry, sparklineGeometry, ringGeometry, barsGeometry, trailGeometry
+} from './charts';
+export type {
+  Point, ElevationOptions, ElevationGeometry, SparklineOptions, SparklineGeometry,
+  RingGeometry, BarInput, BarItem, BarsGeometry, TrailGeometry
+} from './charts';
+
 /* 상태 · 레코드 */
 export { createDefaultState, mergeState } from './state/defaults';
 export type { StateRepository } from './state/repository';

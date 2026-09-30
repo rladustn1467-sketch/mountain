@@ -235,15 +235,36 @@ Phase 1 에서 `pickReason()` 이 코스마다 통계를 재계산하지 않도�
 
 ---
 
-## ISSUE-017 🟢 차트가 SVG 문자열을 반환 (플랫폼 종속)
+## ~~ISSUE-017~~ ✅ 차트가 SVG 문자열을 반환 (플랫폼 종속) — 해소됨
+
+**해소 커밋: charts 기하 분리 작업**
+
+좌표 · path · dasharray 계산을 `packages/core/src/charts/index.ts` 로 옮기고,
+`js/charts.js` 는 SVG 마크업만 만드는 렌더러가 되었다. 모바일은 같은 core 함수를
+호출해 `react-native-svg` 로 그리면 된다.
+
+계산식은 변경하지 않았다 (28개 경계 케이스 포함 출력 동일성 검증).
+남은 플랫폼 종속은 렌더러 쪽의 CSS 변수 색상 · 그라디언트 정의뿐이다.
+
+---
+
+---
+
+## ISSUE-018 🔴 트레일 경로가 코스와 무관한 고정 도형
 
 ```
-js/charts.js
+packages/core/src/charts/index.ts   TRAIL_PATH · TRAIL_CONTOURS · trailGeometry()
 ```
 
-React Native 는 `react-native-svg` 컴포넌트가 필요하므로 문자열을 쓸 수 없다.
-"기하 계산(core) + 렌더(플랫폼)" 으로 분리하면 양쪽이 공유할 수 있다.
-Phase 1 범위에서 제외했다.
+등산로 경로 SVG 가 **모든 코스에 대해 동일한 고정 path** 다. 또한 "현재 위치"
+마커가 진행률과 무관하게 항상 출발점(40,150)에 머문다 — 진행률은 경로 위 점선
+길이(`stroke-dasharray`)에만 반영된다.
+
+`charts` 분리 작업에서 동작을 그대로 옮기기만 했다.
+
+**결정 필요** 실제 지도를 어떻게 도입할지(지도 라이브러리 · 타일 제공자 ·
+오프라인 타일 사전 다운로드)에 따라 이 모듈 전체가 대체된다.
+모바일 Primary 전제에서는 오프라인 타일이 필수 요구사항이다.
 
 ---
 

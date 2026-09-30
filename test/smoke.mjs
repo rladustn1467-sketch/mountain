@@ -153,12 +153,60 @@ dom.window.addEventListener('load', () => {
     return '5/5';
   });
 
-  /* ---- 6) 알려진 구조적 이슈 추적 (실패 아님, 관측값) ---- */
+  /* ---- 6) 차트 기하 골든 검증 ----
+     core 로 옮긴 좌표 계산이 이후 리팩터링에서 바뀌지 않도록 값을 고정한다.
+     계산을 의도적으로 개선할 때는 이 기대값도 함께 갱신할 것. */
+  check('차트 기하 (core 골든값)', () => {
+    const C = window.HHCCore;
+    const e = C.elevationGeometry([220, 260, 318, 390, 452, 510, 548, 601, 573, 512]);
+    const expectLine = 'M8.0 112.0 L44.0 101.1 L80.0 85.2 L116.0 65.6 L152.0 48.7 '
+      + 'L188.0 32.8 L224.0 22.5 L260.0 8.0 L296.0 15.6 L332.0 32.3';
+    if (e.linePath !== expectLine) throw new Error('elevation linePath 불일치');
+    if (e.areaPath !== `${expectLine} L 332.0 120 L 8.0 120 Z`) throw new Error('elevation areaPath 불일치');
+    if (e.min !== 220 || e.max !== 601 || e.range !== 381 || e.peakIndex !== 7) throw new Error('elevation 스칼라 불일치');
+    if (e.gridY[0] !== 39.6 || e.gridY[1] !== 79.2) throw new Error('elevation gridY 불일치');
+
+    const s = C.sparklineGeometry([5, 7, 6, 9, 8, 11]);
+    if (s.linePath !== 'M6.0 48.0 L63.6 34.0 L121.2 41.0 L178.8 20.0 L236.4 27.0 L294.0 6.0') {
+      throw new Error('sparkline linePath 불일치');
+    }
+    if (C.sparklineGeometry([]) !== null) throw new Error('sparkline 빈 입력은 null 이어야 한다');
+
+    const r = C.ringGeometry(42.7);
+    if (r.radius !== 60.5 || r.display !== 43) throw new Error('ring 스칼라 불일치');
+    if (r.dash.toFixed(1) !== '162.3' || r.circumference.toFixed(1) !== '380.1') throw new Error('ring dash 불일치');
+    if (C.ringGeometry(180).pct !== 100 || C.ringGeometry(-25).pct !== 0) throw new Error('ring 클램프 불일치');
+
+    const b = C.barsGeometry([{ label: 'a', short: '#1', value: 7.2 }, { label: 'b', short: '#2', value: 9.4 }]);
+    if (b.max !== 9.4 || b.items[0].heightPct.toFixed(1) !== '76.6' || b.items[1].heightPct !== 100) {
+      throw new Error('bars 불일치');
+    }
+
+    const t = C.trailGeometry(37.4);
+    if (t.totalLength !== 340 || t.dash.toFixed(2) !== '127.16') throw new Error('trail dash 불일치');
+    if (C.trailGeometry(undefined).progress !== 0) throw new Error('trail 기본 진행률 불일치');
+
+    return '5종 · 기하값 고정';
+  });
+
+  /* ---- 7) 차트 렌더러가 core 기하를 사용하는지 ---- */
+  check('차트 렌더러 출력', () => {
+    const svg = HHC.charts.elevation([100, 300, 200]);
+    const geo = window.HHCCore.elevationGeometry([100, 300, 200]);
+    if (!svg.includes(geo.linePath)) throw new Error('렌더 결과에 core 의 linePath 가 없다');
+    if (HHC.charts.sparkline([]) !== '') throw new Error('빈 스파크라인은 빈 문자열이어야 한다');
+    if (!HHC.charts.bars([{ label: '<img>', short: 'a', value: 1 }]).includes('&lt;img&gt;')) {
+      throw new Error('bars label 이스케이프 누락');
+    }
+    return 'elevation · sparkline · bars 확인';
+  });
+
+  /* ---- 8) 알려진 구조적 이슈 추적 (실패 아님, 관측값) ---- */
   HHC.router.go('records');
   const html = view();
   const dupElevFill = (html.match(/id="elevFill"/g) || []).length;
 
-  /* ---- 7) 전역 오염 검사 ---- */
+  /* ---- 9) 전역 오염 검사 ---- */
   check('전역 오염 없음 (window.HHC 외)', () => {
     const leaked = ['__lastRecordId'].filter((k) => k in window);
     if (leaked.length) throw new Error('window.' + leaked.join(', window.'));
