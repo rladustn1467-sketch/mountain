@@ -6,6 +6,14 @@
      before  recommendNext()                  // state / HHC.COURSES / HHC.WEATHER 전역 참조
      after   recommendNext({ records, profile, courses, weather, now })
 
+   제품 결정 (2026-09-30):
+     · 산행 간격을 난이도 결정 근거로 사용하지 않는다.
+       삭제된 로직 — daysSinceLast > avgGap*1.6 이면 난이도 -0.5
+                     avgGap <= 12 이고 상승 추세면 난이도 +0.25
+       난이도는 체력 추세(trendDirection)만으로 조정한다.
+       avgGap 은 "학습된 패턴" 으로 표시하는 용도로만 남는다.
+     · 예정일이 예보 범위를 넘으면 날씨를 반영하지 않고 그 사실을 밝힌다 (ISSUE-004).
+
    ISSUE-005: reasons / reasonText 가 한국어 + <strong> 태그를 포함한다.
    ISSUE-010: 스코어 계수(26 / 30 / 12 / 26 / ±0.5 / 1.08 / 0.92 …)가
               코드에 하드코딩되어 튜닝할 수 없다.
@@ -24,7 +32,10 @@ export interface RecommendInput {
   records: HikeRecord[];
   profile: Profile | null;
   courses: Course[];
-  weather: Weather;
+  /** 예정일이 예보 범위를 넘으면 null — 이때 날씨는 추천 근거로 쓰지 않는다 (ISSUE-004) */
+  weather: Weather | null;
+  /** 대상 산행일 라벨 (예보 없음 안내에 쓰인다) */
+  targetDateLabel?: string;
   now?: number;
 }
 
@@ -52,17 +63,16 @@ export function recommendNext(input: RecommendInput): Recommendation {
     basis = 'basic';
     reasons.push(`등산 경험은 <strong>${optionTitle(ONBOARDING.experience, profile.experience, '입력 정보')}</strong> 수준입니다.`);
     reasons.push(`선호 난이도(<strong>${optionTitle(ONBOARDING.preference, profile.preference, '미입력')}</strong>)에 맞춰 첫 산행 부담을 낮췄습니다.`);
-    reasons.push('아직 산행 기록이 없어 <strong>입력 정보 + 코스 데이터 + 날씨</strong>만으로 추천했습니다.');
+    reasons.push('아직 산행 기록이 없어 <strong>입력 정보 + 코스 데이터</strong>를 기준으로 추천했습니다.');
   } else {
-    /* 기존 사용자 — 실제 기록 기반 */
+    /* 기존 사용자 — 실제 기록 기반
+       난이도는 "체력 추세"만으로 조정한다.
+       산행 간격(avgGap / daysSinceLast)은 난이도 결정에 쓰지 않는다 — 제품 결정. */
     const avgLevel = s.avgLevel;
-    const gap = s.avgGap;
 
     let adj = 0;
     if (s.trendDirection === 'up') adj += 0.5;
     if (s.trendDirection === 'down') adj -= 0.5;
-    if (gap !== null && s.daysSinceLast > gap * 1.6) adj -= 0.5;
-    if (gap !== null && gap <= 12 && s.trendDirection === 'up') adj += 0.25;
     if (s.count === 1) adj = 0;
 
     targetLevel = clampLevel(avgLevel + adj);
@@ -71,21 +81,25 @@ export function recommendNext(input: RecommendInput): Recommendation {
 
     reasons.push(`최근 ${s.count}회 평균 거리 <strong>${s.avgDistance.toFixed(1)}km</strong>, 평균 고도 상승 <strong>+${Math.round(s.avgAscent)}m</strong>를 기준으로 했습니다.`);
 
-    if (gap !== null) {
-      if (s.daysSinceLast > gap * 1.6) {
-        reasons.push(`최근 산행 간격 <strong>${Math.round(s.daysSinceLast)}일</strong>로 평소 주기(${gap.toFixed(0)}일)보다 길어 <strong>이전보다 낮은 난이도</strong>를 추천합니다.`);
-      } else if (s.trendDirection === 'up') {
-        reasons.push('최근 산행에서 거리와 고도 상승량이 꾸준히 증가해 <strong>지난 산행보다 약 10% 높은 난이도</strong>의 코스를 추천합니다.');
-      } else if (s.trendDirection === 'down') {
-        reasons.push('최근 기록이 다소 낮아져 <strong>회복 중심</strong>으로 코스를 구성했습니다.');
-      } else {
-        reasons.push(`평소 산행 주기(<strong>${gap.toFixed(0)}일</strong>)를 고려해 무리하지 않고 이전과 비슷한 난이도를 추천합니다.`);
-      }
+    if (s.trendDirection === 'up') {
+      reasons.push('최근 산행에서 거리와 고도 상승량이 꾸준히 증가해 <strong>지난 산행보다 약 10% 높은 난이도</strong>의 코스를 추천합니다.');
+    } else if (s.trendDirection === 'down') {
+      reasons.push('최근 기록이 다소 낮아져 <strong>회복 중심</strong>으로 코스를 구성했습니다.');
+    } else {
+      reasons.push('최근 기록이 안정적으로 유지되고 있어 <strong>이전과 비슷한 난이도</strong>를 추천합니다.');
     }
   }
 
-  /* ---- 2) 날씨 보정 ---- */
-  if (w.rain >= 50) {
+  /* ---- 2) 날씨 보정 ----
+     예정일이 예보 범위를 넘으면 날씨를 만들어내지 않고, 반영하지 않았음을 밝힌다. */
+  if (!w) {
+    const label = input.targetDateLabel;
+    reasons.push(
+      label
+        ? `예정일(<strong>${label}</strong>)이 예보 범위를 넘어 <strong>날씨는 반영하지 않았습니다</strong>.`
+        : '예정일이 예보 범위를 넘어 <strong>날씨는 반영하지 않았습니다</strong>.'
+    );
+  } else if (w.rain >= 50) {
     targetLevel = clampLevel(targetLevel - 1);
     reasons.push(`예정일 강수 확률이 <strong>${w.rain}%</strong>로 높아 안전을 위해 난이도를 낮췄습니다.`);
   } else if (w.tempMax <= 12) {

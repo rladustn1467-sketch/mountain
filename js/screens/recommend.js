@@ -11,13 +11,12 @@
   function algoInputs(stats, profile) {
     const items = [
       { icon: 'fa-clock-rotate-left', label: '이전 산행 기록', value: stats.hasData ? `${stats.count}회 저장됨` : '기록 없음' },
-      { icon: 'fa-calendar-days', label: '최근 산행 간격', value: stats.avgGap != null ? `약 ${stats.avgGap.toFixed(0)}일 (최근 ${Math.round(stats.daysSinceLast)}일 전)` : (profile.plan ? '예정 시점 반영' : '데이터 없음') },
       { icon: 'fa-route', label: '평균 산행 거리', value: stats.hasData ? `${stats.avgDistance.toFixed(1)} km` : '미입력' },
       { icon: 'fa-mountain', label: '평균 고도 상승', value: stats.hasData ? `+${Math.round(stats.avgAscent)} m` : '미입력' },
       { icon: 'fa-signal', label: '산행 난이도', value: stats.hasData ? (HHC.LEVELS[stats.preferredLevel] || {}).label : '입력 정보 기준' },
       { icon: 'fa-bullseye', label: '사용자 목표', value: (HHC.ONBOARDING.goal.find((o) => o.value === profile.goal) || {}).title || '가볍게 등산' },
       { icon: 'fa-chart-line', label: '최근 산행 성과', value: stats.hasData ? trendLabel(stats.trendDirection) : '기준선 없음' },
-      { icon: 'fa-cloud-sun', label: '예정일 날씨', value: `${HHC.WEATHER.condition} ${HHC.WEATHER.tempMin}~${HHC.WEATHER.tempMax}°C · 강수 ${HHC.WEATHER.rain}%` }
+      { icon: 'fa-cloud-sun', label: '예정일 날씨', value: weatherInputValue() }
     ];
     return `<div class="card card--ai">
       <div class="card__head">
@@ -37,6 +36,15 @@
         </div>`).join('')}
       </div>
     </div>`;
+  }
+
+  /* 예정일 날씨 — 예보 범위를 넘으면 반영하지 않았음을 밝힌다 (ISSUE-004) */
+  function weatherInputValue() {
+    const info = HHC.weatherInfo;
+    const w = info.weather;
+    return w
+      ? `${w.condition} ${w.tempMin}~${w.tempMax}°C · 강수 ${w.rain}%`
+      : `${info.target.label} · 예보 범위 밖 — 반영하지 않음`;
   }
 
   function trendLabel(dir) {
@@ -73,7 +81,7 @@
 
       /* 신규 사용자 안내 */
       const scienceNote = !stats.hasData
-        ? ui.notice('아직 산행 기록이 없어 <strong>입력 정보 + 코스 정보 + 날씨</strong> 기반으로 추천했습니다. 첫 산행을 마치면 추천 정확도가 크게 올라갑니다.', '', 'fa-seedling')
+        ? ui.notice(`아직 산행 기록이 없어 <strong>입력 정보 + 코스 정보${HHC.WEATHER ? ' + 날씨' : ''}</strong> 기반으로 추천했습니다. 첫 산행을 마치면 추천 정확도가 크게 올라갑니다.`, '', 'fa-seedling')
         : (stats.stage === 'growing'
           ? ui.notice(`현재 <strong>${stats.count}회</strong> 기록으로 추천 중입니다. 3회 이상 쌓이면 난이도 변화 추세까지 반영됩니다.`, 'muted', 'fa-database')
           : ui.notice(`<strong>${stats.count}회</strong>의 산행 기록과 실제 산행 주기를 학습해 추천했습니다.`, '', 'fa-circle-check'));
@@ -221,7 +229,7 @@
             <section class="card card--warm">
               <div class="card__head" style="margin-bottom:var(--sp-3)">
                 <div><h2 class="card__title" style="font-size:var(--fs-md)"><i class="fa-solid fa-suitcase-rolling"></i> AI 등산 준비 가이드</h2>
-                <p class="card__sub">예상 소요 ${U.fmtDur(course.duration * 60)} · 기온 ${HHC.WEATHER.tempMin}°C ~ ${HHC.WEATHER.tempMax}°C</p></div>
+                <p class="card__sub">예상 소요 ${U.fmtDur(course.duration * 60)}${HHC.WEATHER ? ` · 기온 ${HHC.WEATHER.tempMin}°C ~ ${HHC.WEATHER.tempMax}°C` : ''}</p></div>
               </div>
               <div class="stack-2">
                 <div class="between"><span style="font-size:var(--fs-sm)"><i class="fa-solid fa-bottle-water" style="color:var(--color-secondary-500)"></i> 물</span><strong>${HHC.esc(course.water)}</strong></div>

@@ -21,7 +21,14 @@ export { hasStatsData } from './types';
 export { LEVELS, LEVEL_BY_KEY, clampLevel } from './levels';
 export { COURSES, findCourse } from './catalog/courses';
 export { ONBOARDING, optionTitle } from './catalog/onboarding';
-export { DEFAULT_WEATHER } from './fixtures/weather';
+export { MOCK_CONDITIONS, mockWeatherProvider } from './fixtures/weather';
+
+/* 날씨 / 산행 예정일 해석 (ISSUE-004) */
+export { resolveHikeDate, resolveWeather, PLAN_OFFSET_DAYS, FORECAST_HORIZON_DAYS } from './weather';
+export type {
+  WeatherProvider, HikeDateSource, HikeDateResolution,
+  ResolveHikeDateInput, WeatherResolution, ResolveWeatherInput
+} from './weather';
 
 /* 계산 */
 export { getStats, changeRate, mean, sum } from './stats';
@@ -30,7 +37,7 @@ export { recommendNext, pickReason, buildGoalPlan } from './recommend';
 export type { RecommendInput, GoalPlanInput } from './recommend';
 
 /* 포맷 */
-export { fmtDur, fmtDurClock, fmtPace, fmtDate, fmtRelative } from './format';
+export { fmtDur, fmtDurClock, fmtPace, fmtDate, fmtRelative, fmtDateWithWeekday } from './format';
 
 /* 차트 기하 (렌더는 플랫폼이 담당) */
 export {

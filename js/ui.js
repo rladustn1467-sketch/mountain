@@ -121,7 +121,11 @@ HHC.ui = (function () {
     </div>`;
   }
 
+  /* 날씨 4칸 스트립. 예정일이 예보 범위를 넘으면 값을 지어내지 않는다 (ISSUE-004) */
   function weatherStrip(w) {
+    if (!w) {
+      return `<p class="no-data"><i class="fa-solid fa-circle-info"></i>예정일이 예보 범위를 넘어 날씨 데이터가 없습니다</p>`;
+    }
     return `<div class="weather-strip">
       <div class="weather-item"><div class="weather-item__icon"><i class="fa-solid ${w.icon}"></i></div>
         <div class="weather-item__value">${w.tempMin}~${w.tempMax}°</div><div class="weather-item__label">기온</div></div>

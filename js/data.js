@@ -42,7 +42,36 @@ window.HHC = window.HHC || {};
   HHC.COURSES = core.COURSES;
   HHC.ONBOARDING = core.ONBOARDING;
 
-  /* 날씨는 core 가 "주입받는" 값이다. 웹은 현재 프로토타입 fixture 를 쓴다.
-     실제 날씨 API 를 붙이면 이 한 줄만 교체한다. */
-  HHC.WEATHER = core.DEFAULT_WEATHER;
+  /* --------------------------------------------------------------------
+     날씨 / 산행 예정일  (ISSUE-004 — A + C 조합)
+
+       C  기본 예정일은 온보딩 Q4(profile.plan)에서 파생한다
+       A  사용자가 고른 날짜(prefs.hikeDate)가 있으면 그것을 우선한다
+       +  예보 범위(10일)를 넘으면 날씨를 만들어내지 않고 null
+
+     data.js 는 store.js 보다 먼저 로드되므로, 값을 미리 굳히지 않고
+     접근 시점에 계산하는 getter 로 노출한다.
+     실제 날씨 API 를 붙일 때는 provider 만 교체한다.
+     -------------------------------------------------------------------- */
+  var WEATHER_PROVIDER = core.mockWeatherProvider;
+
+  function resolve() {
+    var state = HHC.store ? HHC.store.get() : null;
+    var profile = (state && state.profile) || {};
+    var prefs = (state && state.prefs) || {};
+    return core.resolveWeather({
+      plan: profile.plan,
+      override: prefs.hikeDate,
+      provider: WEATHER_PROVIDER
+    });
+  }
+
+  /** 예정일 + 예보 가용성까지 담은 전체 해석 결과 */
+  Object.defineProperty(HHC, 'weatherInfo', { get: resolve, enumerable: true });
+
+  /** 예보. 예정일이 예보 범위를 넘으면 null — 사용 측에서 반드시 확인할 것 */
+  Object.defineProperty(HHC, 'WEATHER', {
+    get: function () { return resolve().weather; },
+    enumerable: true
+  });
 })();

@@ -276,7 +276,7 @@
           <div class="center stack-2" style="padding:var(--sp-4) 0">
             <div class="empty__icon" style="margin:0 auto"><i class="fa-solid fa-seedling"></i></div>
             <h1 class="hero__title" style="color:var(--color-text);font-size:var(--fs-2xl)">첫 산행을 준비했어요</h1>
-            <p class="text-muted" style="font-size:var(--fs-sm)">아직 산행 기록이 없어 <strong style="color:var(--color-text)">입력 정보 + 코스 정보 + 날씨 + AI 분석</strong>으로 추천했습니다.</p>
+            <p class="text-muted" style="font-size:var(--fs-sm)">아직 산행 기록이 없어 <strong style="color:var(--color-text)">입력 정보 + 코스 정보${rec.weather ? ' + 날씨' : ''} + AI 분석</strong>으로 추천했습니다.</p>
           </div>
 
           <div class="card card--ai">
@@ -290,7 +290,7 @@
             <div class="input-chips">
               <span class="input-chip"><i class="fa-solid fa-route"></i>${expLabel}</span>
               <span class="input-chip"><i class="fa-solid fa-sliders"></i>${prefLabel}</span>
-              <span class="input-chip"><i class="fa-solid fa-cloud-sun"></i>${rec.weather.condition} ${rec.weather.tempMin}~${rec.weather.tempMax}°C</span>
+              ${rec.weather ? `<span class="input-chip"><i class="fa-solid fa-cloud-sun"></i>${rec.weather.condition} ${rec.weather.tempMin}~${rec.weather.tempMax}°C</span>` : ''}
             </div>
             <p style="font-size:var(--fs-sm);color:rgba(255,255,255,.9);margin-top:var(--sp-4);line-height:var(--lh-normal)">
               ${course.reasonText}

@@ -117,7 +117,7 @@
           <div class="card">
             <div class="card__head" style="margin-bottom:var(--sp-3)">
               <div><h2 class="card__title" style="font-size:var(--fs-md)"><i class="fa-solid fa-clipboard-check"></i> 산행 전 체크</h2>
-                <p class="card__sub">${w.condition} · ${w.tempMin}~${w.tempMax}°C · 강수 ${w.rain}%</p></div>
+                <p class="card__sub">${w ? `${w.condition} · ${w.tempMin}~${w.tempMax}°C · 강수 ${w.rain}%` : '예정일 예보 없음'}</p></div>
             </div>
             <div class="stack-2">
               <div class="between"><span style="font-size:var(--fs-sm)"><i class="fa-solid fa-bottle-water" style="color:var(--color-secondary-500)"></i> 물 준비</span><strong>${HHC.esc(course.water)}</strong></div>

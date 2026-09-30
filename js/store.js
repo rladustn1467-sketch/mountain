@@ -106,11 +106,13 @@ window.HHC = window.HHC || {};
 
   /** 다음 산행 추천 — core 는 코스 · 날씨 · 프로필을 주입받는다 */
   function recommendNext() {
+    var info = HHC.weatherInfo;
     return core.recommendNext({
       records: state.records,
       profile: state.profile,
       courses: HHC.COURSES,
-      weather: HHC.WEATHER
+      weather: info.weather,            /* 예보 범위를 넘으면 null */
+      targetDateLabel: info.target.label
     });
   }
 

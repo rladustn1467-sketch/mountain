@@ -17,7 +17,8 @@ export function createDefaultState(): AppState {
       customPrimary: null,
       customSecondary: null,
       units: 'metric',
-      notifications: true
+      notifications: true,
+      hikeDate: null
     },
     ui: {
       homeStageSeen: {},

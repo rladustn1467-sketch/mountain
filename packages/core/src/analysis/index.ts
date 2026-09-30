@@ -6,6 +6,12 @@
      before  buildAnalysis()                 // 모듈 내부 state 를 읽음
      after   buildAnalysis(records, now?)    // 인자로 받음 (순수 함수)
 
+   제품 결정 (2026-09-30):
+     산행 간격이 평소보다 길다는 이유로 난이도를 낮춰 추천한다는 문구를 삭제했다.
+     삭제된 문구 — "평소 산행 주기는 약 N일인데 이번엔 M일이 지났습니다.
+                    몸을 다시 적응시키는 관점에서 난이도를 낮춰 추천합니다."
+     간격은 계획 참고 정보로만 남는다.
+
    ISSUE-005: 한국어 문장을 직접 만들어 반환한다. 다국어 · 문구 A/B ·
               LLM 교체를 위해서는 { code, params } 구조로 바꿔야 하지만,
               반환 형태를 바꾸면 화면 코드가 깨지므로 Phase 2 로 미룬다.
@@ -69,15 +75,11 @@ export function buildAnalysis(records: HikeRecord[], now: number = Date.now()): 
     });
   }
 
-  /* 산행 간격 기반 조언 — "빈도 학습" 표현 */
+  /* 산행 간격 기반 조언 — "빈도 학습" 표현.
+     간격은 계획 참고용 정보로만 쓴다. 난이도 조정 근거로는 쓰지 않는다 (제품 결정). */
   if (s.avgGap !== null) {
     const gapTxt = s.avgGap.toFixed(0);
-    if (s.daysSinceLast > s.avgGap * 1.6) {
-      p.push({
-        icon: 'fa-clock-rotate-left',
-        text: `평소 산행 주기는 약 ${gapTxt}일인데 이번엔 ${Math.round(s.daysSinceLast)}일이 지났습니다. 몸을 다시 적응시키는 관점에서 난이도를 낮춰 추천합니다.`
-      });
-    } else if (s.avgGap <= 10 && s.trendDirection === 'up') {
+    if (s.avgGap <= 10 && s.trendDirection === 'up') {
       p.push({
         icon: 'fa-dumbbell',
         text: `최근 약 ${gapTxt}일 간격으로 꾸준히 산행하고 있습니다. 같은 난이도에서 페이스를 더 끌어올려 볼 수 있습니다.`

@@ -153,6 +153,79 @@ dom.window.addEventListener('load', () => {
     return '5/5';
   });
 
+  /* ---- 5b) 산행 예정일 / 날씨 해석 (ISSUE-004 — A + C) ---- */
+  check('예정일 해석 (plan / override / 예보범위)', () => {
+    const C = window.HHCCore;
+    const NOW = Date.UTC(2026, 8, 30, 3, 0, 0); // 2026-09-30
+
+    const week = C.resolveHikeDate({ plan: 'week', now: NOW });
+    if (week.source !== 'plan' || week.daysAhead !== 3) throw new Error(`week → ${week.source}/${week.daysAhead}`);
+    if (!week.inForecastRange) throw new Error('week 는 예보 범위 안이어야 한다');
+
+    const mid = C.resolveHikeDate({ plan: '2-3w', now: NOW });
+    if (mid.daysAhead !== 18 || mid.inForecastRange) throw new Error('2-3w 는 예보 범위 밖이어야 한다');
+
+    const none = C.resolveHikeDate({ now: NOW });
+    if (none.source !== 'default' || none.daysAhead !== 21) throw new Error('plan 없으면 기본 21일');
+
+    /* A — 사용자 지정 날짜가 plan 을 덮어쓴다 */
+    const ov = C.resolveHikeDate({ plan: 'month', override: NOW + 5 * 86400000, now: NOW });
+    if (ov.source !== 'override' || ov.daysAhead !== 5 || !ov.inForecastRange) {
+      throw new Error(`override → ${ov.source}/${ov.daysAhead}`);
+    }
+
+    /* 예보 범위 밖이면 날씨를 지어내지 않는다 */
+    const inRange = C.resolveWeather({ plan: 'week', now: NOW, provider: C.mockWeatherProvider });
+    if (!inRange.weather) throw new Error('범위 안인데 날씨가 없다');
+    const outRange = C.resolveWeather({ plan: 'month', now: NOW, provider: C.mockWeatherProvider });
+    if (outRange.weather !== null || outRange.unavailableReason !== 'beyond-horizon') {
+      throw new Error('범위 밖인데 날씨가 있다');
+    }
+    /* 날짜 라벨이 고정 문자열이 아니어야 한다 */
+    if (inRange.weather.date === '10월 4일 (토)' && week.label !== '10월 4일 (토)') {
+      throw new Error('날짜가 대상일에서 파생되지 않았다');
+    }
+    if (inRange.weather.date !== inRange.target.label) throw new Error('날씨 날짜와 예정일 라벨 불일치');
+
+    return `week=+3일(예보O) · 2-3w=+18일(예보X) · override 우선`;
+  });
+
+  /* ---- 5c) 산행 간격은 난이도 결정에 쓰지 않는다 (제품 결정) ---- */
+  check('산행 간격이 난이도에 영향 없음', () => {
+    const C = window.HHCCore;
+    const NOW = Date.UTC(2026, 8, 30, 3, 0, 0);
+    const mk = (daysAgo) => daysAgo.map((d, i) => ({
+      id: 'r' + i, date: NOW - d * 86400000, courseId: 'gyeryong-donghaksa', name: 'x',
+      distance: 7, duration: 7200, ascent: 500, descent: 470,
+      avgPace: 17, calories: 600, level: 2, maxAlt: 600, paceStability: 80, splits: []
+    }));
+    /* 간격 구조는 같고 "마지막 산행 이후 경과일" 만 크게 다른 두 세트 */
+    const fresh = mk([2, 25, 50]);    // 2일 전 산행
+    const stale = mk([200, 223, 248]); // 200일 전 산행 (평소 주기의 8배)
+
+    const args = (records) => ({
+      records, profile: { goal: 'fitness' }, courses: C.COURSES, weather: null, now: NOW
+    });
+    const a = C.recommendNext(args(fresh));
+    const b = C.recommendNext(args(stale));
+
+    if (a.targetLevel !== b.targetLevel) {
+      throw new Error(`간격이 난이도를 바꿨다: ${a.targetLevel} vs ${b.targetLevel}`);
+    }
+    if (a.targetDistance.toFixed(4) !== b.targetDistance.toFixed(4)) {
+      throw new Error(`간격이 목표 거리를 바꿨다: ${a.targetDistance} vs ${b.targetDistance}`);
+    }
+
+    /* 삭제된 문구가 되살아나지 않도록 */
+    const text = [...a.reasons, ...b.reasons,
+      ...C.buildAnalysis(fresh, NOW).points.map((p) => p.text),
+      ...C.buildAnalysis(stale, NOW).points.map((p) => p.text)].join(' ');
+    for (const banned of ['몸을 다시 적응', '주기보다 길어', '보다 길어 ']) {
+      if (text.includes(banned)) throw new Error(`삭제된 문구가 남아 있다: "${banned}"`);
+    }
+    return `난이도 ${a.targetLevel} 동일 · 목표거리 ${a.targetDistance.toFixed(2)}km 동일`;
+  });
+
   /* ---- 6) 차트 기하 골든 검증 ----
      core 로 옮긴 좌표 계산이 이후 리팩터링에서 바뀌지 않도록 값을 고정한다.
      계산을 의도적으로 개선할 때는 이 기대값도 함께 갱신할 것. */

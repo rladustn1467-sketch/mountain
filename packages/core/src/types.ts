@@ -93,7 +93,7 @@ export interface Course {
 
 /* ------------------------------ 날씨 ------------------------------ */
 export interface Weather {
-  /** 표시용 문자열 — ISSUE-004: 고정 문자열이라 실제 날짜와 무관하다 */
+  /** 표시용 날짜 라벨 — 대상 산행일에서 파생한다 (ISSUE-004 해소) */
   date: string;
   condition: string;
   /** 표현 계층용 아이콘 키 — ISSUE-006 */
@@ -133,6 +133,8 @@ export interface Prefs {
   customSecondary: string | null;
   units: string;
   notifications: boolean;
+  /** 사용자가 직접 고른 산행 예정일 (epoch ms). null 이면 온보딩 plan 에서 파생 (ISSUE-004) */
+  hikeDate: number | null;
 }
 
 export interface UiState {
@@ -222,7 +224,8 @@ export interface Recommendation {
   /** ISSUE-005: 한국어 + HTML 태그 포함 */
   reasons: string[];
   courses: RecommendedCourse[];
-  weather: Weather;
+  /** 예정일이 예보 범위를 넘으면 null (ISSUE-004) */
+  weather: Weather | null;
   confidence: number;
 }
 

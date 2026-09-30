@@ -46,3 +46,10 @@ export function fmtRelative(ts: number, now: number = Date.now()): string {
   if (days < 30) return `${Math.floor(days / 7)}주 전`;
   return `${Math.floor(days / 30)}개월 전`;
 }
+
+/** epoch ms → "10월 4일 (토)" — 산행 예정일 표시용 */
+export function fmtDateWithWeekday(ts: number): string {
+  const d = new Date(ts);
+  const weekday = ['일', '월', '화', '수', '목', '금', '토'][d.getDay()];
+  return `${d.getMonth() + 1}월 ${d.getDate()}일 (${weekday})`;
+}

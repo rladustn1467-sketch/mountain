@@ -10,6 +10,27 @@
   const { ui, router, store } = HHC;
   const U = store.utils;
 
+  /* 날씨 카드 — 예보가 없는 경우(예정일이 예보 범위 밖)까지 처리한다 (ISSUE-004).
+     예보가 있을 때의 마크업은 이전과 동일하다. */
+  function weatherCard(title, subFn) {
+    const info = HHC.weatherInfo;
+    const w = info.weather;
+    const sub = w
+      ? subFn(w)
+      : `${info.target.label} 예정 · 예보 범위(${HHC.core.FORECAST_HORIZON_DAYS}일) 밖`;
+    const summary = w
+      ? w.summary
+      : '예정일이 예보 범위를 넘어 날씨 데이터가 없습니다. 산행일이 가까워지면 표시됩니다.';
+    return `<div class="card card--weather">
+        <div class="card__head" style="margin-bottom:var(--sp-3)">
+          <div><h2 class="card__title" style="font-size:var(--fs-md)"><i class="fa-solid fa-cloud-sun"></i> ${title}</h2>
+            <p class="card__sub">${sub}</p></div>
+        </div>
+        ${ui.weatherStrip(w)}
+        <p class="text-muted" style="font-size:var(--fs-xs);margin-top:var(--sp-3)">${summary}</p>
+      </div>`;
+  }
+
   function greeting() {
     const h = new Date().getHours();
     if (h < 6) return '이른 시간이네요';
@@ -64,14 +85,7 @@
         </div>
       </section>
 
-      <div class="card card--weather">
-        <div class="card__head" style="margin-bottom:var(--sp-3)">
-          <div><h2 class="card__title" style="font-size:var(--fs-md)"><i class="fa-solid fa-cloud-sun"></i> 산행 예정일 날씨</h2>
-            <p class="card__sub">${HHC.WEATHER.date} 기준</p></div>
-        </div>
-        ${ui.weatherStrip(HHC.WEATHER)}
-        <p class="text-muted" style="font-size:var(--fs-xs);margin-top:var(--sp-3)">${HHC.WEATHER.summary}</p>
-      </div>`;
+      ${weatherCard('산행 예정일 날씨', (w) => `${w.date} 기준`)}`;
   }
 
   /* --------------------------- 성장 / 개인화 홈 --------------------------- */
@@ -167,7 +181,7 @@
           <div>
             <span class="ai-badge"><i class="fa-solid fa-bullseye"></i>다음 산행</span>
             <h2 class="card__title" style="margin-top:10px;font-size:var(--fs-md)">다음 산행 추천받기</h2>
-            <p class="card__sub">${stats.count}회 기록 + 산행 간격 ${stats.avgGap != null ? stats.avgGap.toFixed(0) + '일' : '—'} + 날씨 반영</p>
+            <p class="card__sub">${stats.count}회 기록 + 최근 체력 추세 + 날씨 반영</p>
           </div>
         </div>
         <button class="btn btn--primary btn--lg btn--block" data-go="recommend">
@@ -208,14 +222,7 @@
       </section>
 
       <!-- 날씨 -->
-      <div class="card card--weather">
-        <div class="card__head" style="margin-bottom:var(--sp-3)">
-          <div><h2 class="card__title" style="font-size:var(--fs-md)"><i class="fa-solid fa-cloud-sun"></i> 다음 산행 예정일 날씨</h2>
-            <p class="card__sub">${HHC.WEATHER.date} · ${HHC.WEATHER.condition}</p></div>
-        </div>
-        ${ui.weatherStrip(HHC.WEATHER)}
-        <p class="text-muted" style="font-size:var(--fs-xs);margin-top:var(--sp-3)">${HHC.WEATHER.summary}</p>
-      </div>`;
+      ${weatherCard('다음 산행 예정일 날씨', (w) => `${w.date} · ${w.condition}`)}`;
   }
 
   /* ------------------------------- 등록 ------------------------------- */

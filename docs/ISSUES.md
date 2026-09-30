@@ -62,17 +62,39 @@ packages/core/src/demo/index.ts
 
 ---
 
-## ISSUE-004 🔴 날씨가 고정 문자열
+## ~~ISSUE-004~~ ✅ 날씨가 고정 문자열 — 해소됨
 
-`DEFAULT_WEATHER.date` 가 `'10월 4일 (토)'` 로 고정되어 있어 영구히 틀리다.
+**결정 (2026-09-30): A + C 조합**
+
+| | 내용 |
+|---|---|
+| **C** | 기본 예정일은 온보딩 Q4(`profile.plan`)에서 파생한다 |
+| **A** | 사용자가 고른 날짜(`prefs.hikeDate`)가 있으면 그것을 우선한다 |
+| **+** | 예보 범위(10일)를 넘으면 날씨를 만들어내지 않고 `null` 을 반환한다 |
 
 ```
-packages/core/src/fixtures/weather.ts
+packages/core/src/weather/index.ts     resolveHikeDate · resolveWeather
+                                       PLAN_OFFSET_DAYS · FORECAST_HORIZON_DAYS
+packages/core/src/fixtures/weather.ts  mockWeatherProvider (교체 대상)
+js/data.js                             HHC.WEATHER / HHC.weatherInfo (지연 계산 getter)
 ```
 
-core 는 이미 날씨를 **주입받는** 구조로 바꿨으므로(`recommendNext({ weather })`),
-실제 API 를 붙일 때 core 는 수정하지 않는다. 남은 결정은 "어느 날짜의 날씨인가"다
-— 사용자가 산행일을 지정하는지, 다음 주말을 가정하는지.
+정책값:
+
+```
+plan → 예정일까지 일수      week 3 · 2-3w 18 · month 28 · unknown 21
+예보 유효 범위              10일
+```
+
+날씨는 `WeatherProvider` 로 주입되므로, **실제 날씨 API 를 붙일 때 core 는
+수정하지 않는다** (제공자만 교체).
+
+### 남은 작업 (UI)
+
+`prefs.hikeDate` 슬롯과 core 의 `override` 경로는 준비되었으나, **사용자가 날짜를
+고르는 UI 는 아직 만들지 않았다.** UI/UX 를 임의로 늘리지 않기로 한 원칙에 따라
+배치 위치(온보딩 / 추천 화면 / 마이)가 정해진 뒤에 붙인다.
+그때까지 실질 동작은 C(plan 기반)뿐이다.
 
 ---
 
@@ -93,8 +115,40 @@ packages/core/src/catalog/onboarding.ts
 **Phase 2 작업** `{ code, params }` 구조체 반환 + 별도 copy 계층.
 반환 형태를 바꾸면 화면 코드가 깨지므로 Phase 1 에서는 손대지 않았다.
 
-관련: `ui.js:102` 의 `aiPoints()` 가 `p.text` 를 이스케이프 없이 주입하므로,
+관련: `ui.js` 의 `aiPoints()` 가 `p.text` 를 이스케이프 없이 주입하므로,
 서버/사용자 데이터가 이 경로에 들어오면 XSS 가 된다.
+
+### 결정 상태 (2026-09-30)
+
+**문구 생성 방식(A 규칙엔진 / B LLM / C 하이브리드)은 보류.**
+아래 로직 제거 후 실제로 남는 추천 · 분석 기능을 보고 다시 판단한다.
+
+**확정 · 반영 완료 — 산행 간격을 난이도 결정 근거로 사용하지 않는다**
+
+삭제한 것:
+
+```
+packages/core/src/recommend/index.ts
+  - daysSinceLast > avgGap * 1.6  이면 난이도 -0.5
+  - avgGap <= 12 이고 상승 추세면 난이도 +0.25
+  - "최근 산행 간격 N일로 평소 주기(M일)보다 길어 이전보다 낮은 난이도를 추천합니다."
+  - "평소 산행 주기(N일)를 고려해 무리하지 않고 이전과 비슷한 난이도를 추천합니다."
+    → "최근 기록이 안정적으로 유지되고 있어 이전과 비슷한 난이도를 추천합니다." 로 교체
+
+packages/core/src/analysis/index.ts
+  - "평소 산행 주기는 약 N일인데 이번엔 M일이 지났습니다.
+     몸을 다시 적응시키는 관점에서 난이도를 낮춰 추천합니다."
+
+js/screens/recommend.js   추천 알고리즘 입력 카드의 '최근 산행 간격' 행
+js/screens/home.js        "N회 기록 + 산행 간격 M일 + 날씨 반영"
+                          → "N회 기록 + 최근 체력 추세 + 날씨 반영"
+```
+
+난이도는 이제 **체력 추세(`trendDirection`)** 만으로 조정한다.
+`avgGap` 은 "학습된 패턴" 과 계획 참고 정보로만 남는다(패턴 화면 · 분석의 주기 안내).
+
+회귀 방지: 스모크 테스트 `산행 간격이 난이도에 영향 없음` 이 경과일 2일 / 200일
+두 세트의 `targetLevel` · `targetDistance` 동일성과 삭제 문구 부재를 검사한다.
 
 ---
 
