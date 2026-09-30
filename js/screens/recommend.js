@@ -80,11 +80,10 @@
       </div>`;
 
       /* 신규 사용자 안내 */
+      /* ISSUE-008: 단계(개인화 활성화) 대신 "무엇을 근거로 추천했는지" 를 알립니다 */
       const scienceNote = !stats.hasData
-        ? ui.notice(`아직 산행 기록이 없어 <strong>입력 정보 + 코스 정보${HHC.WEATHER ? ' + 날씨' : ''}</strong> 기반으로 추천했습니다. 첫 산행을 마치면 추천 정확도가 크게 올라갑니다.`, '', 'fa-seedling')
-        : (stats.stage === 'growing'
-          ? ui.notice(`현재 <strong>${stats.count}회</strong> 기록으로 추천 중입니다. 3회 이상 쌓이면 난이도 변화 추세까지 반영됩니다.`, 'muted', 'fa-database')
-          : ui.notice(`<strong>${stats.count}회</strong>의 산행 기록과 실제 산행 주기를 학습해 추천했습니다.`, '', 'fa-circle-check'));
+        ? ui.notice(`아직 산행 기록이 없어 <strong>온보딩 입력 정보 + 코스 정보${HHC.WEATHER ? ' + 날씨' : ''}</strong>를 기반으로 추천했습니다. 산행 기록이 쌓이면 반영할 데이터가 늘어납니다.`, '', 'fa-seedling')
+        : ui.notice(`<strong>${stats.count}회</strong>의 산행 기록을 반영해 추천했습니다.${stats.capabilities.canAnalyzeTrend ? '' : ` 추세 분석은 ${HHC.core.MIN_RECORDS_FOR_TREND}회부터 반영됩니다.`}`, '', 'fa-circle-check');
 
       return `<section class="screen">
         <header class="topbar topbar--line">
@@ -92,6 +91,9 @@
           <button class="icon-btn" data-go="home" aria-label="홈으로"><i class="fa-solid fa-xmark"></i></button>
         </header>
         <div class="screen__body screen__body--notitle">
+          <!-- 산행 예정일 선택 — 배치 위치 미확정(ISSUE-004).
+               이동할 때 이 한 줄만 옮기면 된다 (이벤트는 app.js 전역 위임) -->
+          ${ui.hikeDatePicker()}
           ${algoInputs(stats, profile)}
           ${reasonCard}
 

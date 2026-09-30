@@ -146,7 +146,40 @@ HHC.ui = (function () {
     </div>`;
   }
 
-  return { levelChip, sectionHead, stat, delta, courseCard, aiCard, aiPoints, aiMetrics, bar, empty, notice, weatherStrip };
+  /* ------------------------------------------------------------------
+     산행 예정일 선택 (ISSUE-004 A)
+     --------------------------------------------------------------------
+     어느 화면에도 그대로 옮길 수 있게 만든 자립형 블록이다.
+       · 마크업   ui.hikeDatePicker()  한 줄만 붙이면 된다
+       · 이벤트   app.js 의 전역 위임이 처리한다 (mount 배선 불필요)
+     배치 위치는 아직 확정하지 않았다 — 옮길 때 호출 한 줄만 이동하면 된다.
+     ------------------------------------------------------------------ */
+  function hikeDatePicker() {
+    const core = HHC.core;
+    const info = HHC.weatherInfo;
+    const t = info.target;
+    const value = core.toKstDateInputValue(t.date);
+    const today = core.toKstDateInputValue(Date.now());
+    const sourceLabel = t.source === 'override'
+      ? '직접 선택'
+      : t.source === 'plan' ? '온보딩 예정 시점 기준' : '기본값';
+
+    return `<div class="card card--inset" data-hike-date-picker>
+      <div class="between" style="margin-bottom:var(--sp-3)">
+        <div>
+          <div style="font-size:var(--fs-sm);font-weight:var(--fw-semibold)"><i class="fa-solid fa-calendar-day"></i> 산행 예정일</div>
+          <div class="setting-desc">${sourceLabel} · ${t.inForecastRange ? '예보 범위 안' : `예보 범위(${core.FORECAST_HORIZON_DAYS}일) 밖`}</div>
+        </div>
+        ${t.source === 'override'
+          ? '<button class="chip chip--sm chip--outline" data-hike-date-reset>기본값으로</button>'
+          : ''}
+      </div>
+      <input class="input" type="date" value="${value}" min="${today}" data-hike-date-input
+        aria-label="산행 예정일 선택">
+    </div>`;
+  }
+
+  return { levelChip, sectionHead, stat, delta, courseCard, aiCard, aiPoints, aiMetrics, bar, empty, notice, weatherStrip, hikeDatePicker };
 })();
 
 /* 장식용 능선 그래픽 SVG (색 지정 가능) */

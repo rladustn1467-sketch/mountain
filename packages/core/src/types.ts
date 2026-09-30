@@ -150,14 +150,30 @@ export interface AppState {
 }
 
 /* ------------------------------ 파생 통계 ------------------------------ */
-export type Stage = 'new' | 'growing' | 'personalized';
 export type TrendDirection = 'flat' | 'up' | 'down';
+
+/**
+ * 기능별 "표시할 만한 데이터가 있는가".
+ * ISSUE-008 결정에 따라 'stage' / 'hasEnoughData' 단일 게이트를 대체한다.
+ * 임계값은 stats 모듈의 MIN_* 상수에 있다.
+ */
+export interface DataCapabilities {
+  /** 이전 산행 대비 델타 (>=2회) */
+  canCompareWithPrevious: boolean;
+  /** 회차별 그래프 (>=2회) */
+  canShowSeries: boolean;
+  /** 선호 난이도 최빈값 (>=2회) */
+  canInferPreferredLevel: boolean;
+  /** 추세 · 장기 변화 분석 (>=3회) */
+  canAnalyzeTrend: boolean;
+  /** 평균 산행 주기 (같은 날이 아닌 간격 >=1) */
+  canEstimateInterval: boolean;
+}
 
 export interface StatsBase {
   count: number;
   hasData: boolean;
-  hasEnoughData: boolean;
-  stage: Stage;
+  capabilities: DataCapabilities;
 }
 
 export interface StatsFull extends StatsBase {
@@ -209,7 +225,13 @@ export interface Analysis {
 }
 
 /* ------------------------------ 추천 ------------------------------ */
-export type RecommendationBasis = 'basic' | 'partial' | 'personalized';
+/**
+ * 추천이 무엇에 근거했는가.
+ * ISSUE-008: 'partial' / 'personalized' 단계 구분을 없앴다.
+ *   'onboarding' 기록이 없어 온보딩 입력 정보로 추천
+ *   'records'    산행 기록을 반영해 추천
+ */
+export type RecommendationBasis = 'onboarding' | 'records';
 
 export interface RecommendedCourse extends Course {
   rank: number;

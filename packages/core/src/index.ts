@@ -30,8 +30,19 @@ export type {
   ResolveHikeDateInput, WeatherResolution, ResolveWeatherInput
 } from './weather';
 
+/* 시간 — 모든 날짜 계산은 Asia/Seoul 고정 (ISSUE-007) */
+export {
+  TIMEZONE, TZ_OFFSET_MINUTES, kstParts, kstDayIndex, kstStartOfDay,
+  kstDayDiff, isSameKstDay, toKstDateInputValue, fromKstDateInputValue
+} from './time';
+export type { KstParts } from './time';
+
 /* 계산 */
-export { getStats, changeRate, mean, sum } from './stats';
+export { getStats, changeRate, mean, sum, computeCapabilities } from './stats';
+export {
+  MIN_RECORDS_FOR_COMPARISON, MIN_RECORDS_FOR_SERIES, MIN_RECORDS_FOR_PREFERRED_LEVEL,
+  MIN_RECORDS_FOR_TREND, MIN_GAPS_FOR_INTERVAL
+} from './stats';
 export { buildAnalysis } from './analysis';
 export { recommendNext, pickReason, buildGoalPlan } from './recommend';
 export type { RecommendInput, GoalPlanInput } from './recommend';

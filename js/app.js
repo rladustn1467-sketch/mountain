@@ -39,9 +39,28 @@
     }
   };
 
-  /* ---------------------- 전역 클릭 위임 ---------------------- */
+  /* ---------------------- 전역 위임 ---------------------- */
   function bindGlobalDelegation() {
+    /* 산행 예정일 선택 (ui.hikeDatePicker) — 어느 화면에 있어도 동작하도록
+       전역에서 처리한다. 화면별 mount 배선이 없으므로 컴포넌트를 자유롭게 옮길 수 있다. */
+    document.addEventListener('change', (e) => {
+      const input = e.target.closest('[data-hike-date-input]');
+      if (!input) return;
+      const ts = HHC.core.fromKstDateInputValue(input.value);
+      store.setPref('hikeDate', ts);
+      HHC.toast(ts ? '산행 예정일을 변경했습니다' : '산행 예정일을 초기화했습니다', 'fa-calendar-day');
+      router.render();
+    });
+
     document.addEventListener('click', (e) => {
+      /* 산행 예정일 기본값 복원 */
+      const dateReset = e.target.closest('[data-hike-date-reset]');
+      if (dateReset) {
+        store.setPref('hikeDate', null);
+        HHC.toast('산행 예정일을 기본값으로 되돌렸습니다', 'fa-rotate-left');
+        router.render();
+        return;
+      }
       /* 뒤로가기 버튼 (data-nav="back") */
       const navBtn = e.target.closest('[data-nav="back"]');
       if (navBtn) {

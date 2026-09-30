@@ -1,10 +1,13 @@
 /* ==========================================================================
    SCREEN — 홈 / 대시보드
    --------------------------------------------------------------------------
-   데이터 상태에 따라 홈 자체가 진화합니다.
-     stage 'new'          → 데이터 없음 + 첫 산행 CTA
-     stage 'growing'      → 최근 산행 + 기본 AI 분석 + 다음 산행 추천
-     stage 'personalized' → 산행 패턴 + 난이도 변화 + 장기 개선점
+   기록이 있는지에 따라 홈이 달라집니다.
+     기록 없음 → 온보딩 정보 기반 첫 산행 추천 CTA
+     기록 있음 → 최근 산행 · AI 분석 · 다음 추천 · 학습된 패턴
+
+   ISSUE-008: '개인화 활성화' 3단계 상태는 제거했습니다.
+              기록이 쌓일수록 쓸 수 있는 데이터가 늘어나는 구조이며,
+              기능별 표시 조건은 stats.capabilities 가 알려줍니다.
    ========================================================================== */
 (function () {
   const { ui, router, store } = HHC;
@@ -91,26 +94,23 @@
   /* --------------------------- 성장 / 개인화 홈 --------------------------- */
   function activeHome(stats, analysis, rec) {
     const last = stats.last;
-    const isGrowing = stats.stage === 'growing';
+    const caps = stats.capabilities;
     const nextCourse = rec.courses[0];
 
-    /* 상태 전환 배너 — 실제 조건에 따라 문구가 바뀝니다 */
-    let banner = '';
-    if (isGrowing) {
-      banner = `<div class="stage-banner stage-banner--grow">
-        <i class="fa-solid fa-seedling"></i>
-        <div><strong>${stats.count === 1 ? '첫 산행을 완료했어요!' : '데이터가 축적되는 중입니다.'}</strong><br>
-        ${stats.count === 1
-          ? 'AI가 첫 산행 데이터를 분석했습니다. 기준선이 만들어졌어요.'
-          : `${stats.count}회의 산행 기록으로 기본 패턴을 학습하고 있습니다. 3회 이상이면 개인화가 활성화됩니다.`}</div>
-      </div>`;
-    } else {
-      banner = `<div class="stage-banner stage-banner--done">
-        <i class="fa-solid fa-shield-heart"></i>
-        <div><strong>개인화가 활성화되었습니다.</strong><br>
-        ${stats.count}회의 산행 기록으로 난이도 변화와 장기 추세를 분석하고 있습니다.</div>
-      </div>`;
-    }
+    /* 배너 — 단계 전환이 아니라 "지금 가진 데이터" 를 알립니다 (ISSUE-008) */
+    const banner = stats.count === 1
+      ? `<div class="stage-banner stage-banner--grow">
+          <i class="fa-solid fa-flag-checkered"></i>
+          <div><strong>첫 산행을 완료했어요!</strong><br>
+          이 기록이 기준선이 되어 다음 추천에 반영됩니다.</div>
+        </div>`
+      : `<div class="stage-banner stage-banner--done">
+          <i class="fa-solid fa-database"></i>
+          <div><strong>산행 기록 ${stats.count}회</strong><br>
+          기록이 쌓일수록 추천에 반영되는 데이터가 늘어납니다.${caps.canAnalyzeTrend
+            ? ''
+            : ` 추세 분석은 ${HHC.core.MIN_RECORDS_FOR_TREND}회부터 제공됩니다.`}</div>
+        </div>`;
 
     /* 최근 산행 변화 요약 */
     const deltaLine = stats.previous

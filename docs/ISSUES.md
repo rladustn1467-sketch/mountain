@@ -167,26 +167,102 @@ packages/core/src/fixtures/weather.ts
 
 ---
 
-## ISSUE-007 🔴 타임존 정책 없음
+## ~~ISSUE-007~~ ✅ 타임존 정책 없음 — 해소됨
 
-`fmtDate()` 가 실행 환경의 로컬 타임존을 그대로 쓴다.
+**결정 (2026-09-30): `Asia/Seoul` 고정**
+
+이 앱은 국내 산행 중심이므로 기기 로컬 타임존이나 산행 지점의 timezone 을
+사용하거나 저장하지 않는다.
+
+| 항목 | 기준 |
+|---|---|
+| 날짜 · 시간 | Asia/Seoul |
+| 오늘 / 어제 / 며칠 전 | 한국 시간 |
+| 산행 기록의 날짜 계산 | 한국 시간 |
+| 일별 통계 · 날짜 기반 데이터 | 한국 시간 |
+| 기록별 timezone 저장 | **하지 않음** |
+| GPS 기반 timezone 처리 | **하지 않음** |
 
 ```
-packages/core/src/format/index.ts   fmtDate()
+packages/core/src/time/index.ts   kstParts · kstDayIndex · kstStartOfDay
+                                  kstDayDiff · isSameKstDay
+                                  toKstDateInputValue · fromKstDateInputValue
+packages/core/src/format/index.ts fmtDate · fmtRelative · fmtDateWithWeekday → KST
+packages/core/src/stats/index.ts  gaps · daysSinceLast → 한국 달력일 차이
+packages/core/src/weather/index.ts 예정일 자정 → 한국 시간
 ```
 
-산행 간격(`avgGap`)과 "오늘/어제" 판정이 기기 타임존에 따라 달라진다.
-서버 동기화가 붙으면 기기 간 불일치가 발생한다.
+**스키마 변경 없음.** 기록은 계속 epoch ms 만 저장하고, 달력 해석만 KST 로 고정했다.
+
+구현 메모: KST 는 서머타임이 없고 UTC+9 고정이므로 고정 오프셋 산술로 처리했다.
+`Intl` / 타임존 DB 에 의존하지 않아 React Native(Hermes)에서도 그대로 동작한다.
+
+부수 효과 — `fmtRelative` 가 경과 시간이 아니라 **날짜가 몇 번 바뀌었는지**를 센다.
+밤 11시 산행을 다음날 새벽 1시에 보면 이전에는 "오늘", 이제는 "어제" 로 나온다.
+
+`avgGap` / `daysSinceLast` 도 달력일 기준으로 바뀌었다(같은 날 중복 제외 조건이
+`>= 0.5` → `>= 1`). 두 값은 **난이도 결정에 쓰지 않는다** — 표시와 계획 참고용이다.
+
+> 기존 ISSUE 본문에 있던 *"평균 산행 주기가 핵심 지표이고 추천 난이도를 직접
+> 바꾼다"* 는 서술은 현재 제품 요구사항과 맞지 않아 삭제했다.
+> 산행 주기에 따라 난이도를 하향하는 로직은 사용하지 않는다.
 
 ---
 
-## ISSUE-008 🔴 개인화 활성화 기준(3회)이 코드에 하드코딩
+## ~~ISSUE-008~~ ✅ "개인화 활성화" 개념 — 제거됨
+
+**결정 (2026-09-30)**
+
+이 앱은 기록 3회가 쌓인 뒤부터 개인화되는 서비스가 **아니다.**
+온보딩에서 받은 정보로 **첫 산행부터 개인화된 추천**을 제공하는 것이 기본이고,
+기록이 쌓이면 개인화에 쓸 수 있는 데이터가 늘어나는 구조다.
+
+따라서 삭제한 것:
+
+- `stage` (`'new'` / `'growing'` / `'personalized'`) 3단계 상태
+- `hasEnoughData` (`count >= 3`) 단일 게이트
+- "개인화 활성화" 라는 상태 전환 개념 전체
+- 3회 / 5회 임계값을 산행 주기와 연결하는 서술
+
+### 제거 전 "3회" 가 무엇을 gate 하고 있었는가 (조사 결과)
+
+| 위치 | 실제로 막고 있던 기능 | 처리 |
+|---|---|---|
+| `stats.hasEnoughData` | 아래 항목들의 공통 게이트 | 삭제 |
+| `stats.stage` | 홈 배너 · 마이 단계 카드 · 패턴 칩 · 분석 배지 · 추천 안내 | 삭제 |
+| `analysis.headline` | "산행 패턴이 개인화 단계에 들어섰습니다." | 문구 삭제 |
+| `recommend.basis` | `'personalized'` / `'partial'` 라벨. `pickReason` 은 `'basic'` 만 검사했으므로 **실제 분기에 영향 없음** | `'onboarding'` / `'records'` 로 단순화 |
+| `hiking.js` 분석 배지 | '개인화 분석' / '기본 분석' / '기준선 분석' | 1회=기준선, 그 외 '산행 분석' |
+| `hiking.js` 장기 개선점 섹션 | 최근 절반 vs 이전 절반 추세 표 + 스파크라인 | `canAnalyzeTrend` 로 대체 |
+| `profile.js` 개인화 단계 카드 | 3단계 목록 + `count / 3` 진행바 | 카드 교체 (아래) |
+| `records.js` 패턴 칩 | '개인화 활성' / '축적 중' | `N회 기록` 으로 교체 |
+| `recommend.js` 안내 | "3회 이상 쌓이면 난이도 변화 추세까지 반영됩니다" | 추세 조건 안내로 교체 |
+
+### 대체 구조 — 기능별 최소 데이터 조건
 
 ```
-packages/core/src/stats/index.ts   hasEnoughData / stage
+packages/core/src/stats/index.ts
+  MIN_RECORDS_FOR_COMPARISON      2   이전 산행 대비 델타
+  MIN_RECORDS_FOR_SERIES          2   회차별 그래프 (스파크라인 · 미니바)
+  MIN_RECORDS_FOR_PREFERRED_LEVEL 2   선호 난이도 (최빈값)
+  MIN_RECORDS_FOR_TREND           3   추세 · 장기 변화 분석
+  MIN_GAPS_FOR_INTERVAL           1   평균 산행 주기
 ```
 
-제품 정책인데 코드에 있다. 설정으로 분리하고 기준값을 결정해야 한다.
+`getStats().capabilities` 가 `{ canCompareWithPrevious, canShowSeries,
+canInferPreferredLevel, canAnalyzeTrend, canEstimateInterval }` 를 돌려준다.
+임계값은 위 상수 한곳에만 있고, **산행 주기와 연결하지 않는다.**
+
+`profile.js` 의 단계 카드는 "산행 데이터" 카드로 교체했다 — 현재 기록 수와
+**각 분석에 필요한 최소 조건**을 보여준다(정보를 없애지 않기 위한 대체안이며,
+카드 자체를 삭제하는 쪽이 낫다면 그렇게 바꿀 수 있다).
+
+### 남은 결정 사항
+
+`MIN_RECORDS_FOR_TREND = 3` 은 **기존 임계값을 그대로 승계**한 값이다.
+`changeRate()` 가 "최근 절반 vs 이전 절반" 을 비교하므로 3회에서는 이전 절반이
+1건뿐이다. 통계적으로는 양쪽에 2건씩 들어가는 **4** 가 더 타당하다 — 값 변경은
+별도 결정 사항으로 남긴다.
 
 ---
 

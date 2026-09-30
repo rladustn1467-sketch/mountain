@@ -102,7 +102,8 @@ export function buildAnalysis(records: HikeRecord[], now: number = Date.now()): 
   }
 
   return {
-    headline: s.hasEnoughData ? '산행 패턴이 개인화 단계에 들어섰습니다.' : '산행 데이터를 분석했습니다.',
+    /* ISSUE-008: "개인화 단계에 들어섰습니다" 문구 삭제 — 단계 개념을 쓰지 않는다 */
+    headline: '산행 데이터를 분석했습니다.',
     points: p,
     /* ISSUE-009: 신뢰도가 기록 개수의 선형 함수일 뿐이다 */
     confidence: Math.min(96, 42 + s.count * 9)

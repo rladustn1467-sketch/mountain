@@ -100,12 +100,15 @@ dom.window.addEventListener('load', () => {
 
   /* ---- 2) 개인화 상태(6회): 전 라우트 렌더 ---- */
   HHC.store.seedDemo('personalized');
-  check('[개인화] 데모 시드', () => {
+  check('[기록 6회] 데모 시드', () => {
     const s = HHC.store.getStats();
-    if (s.stage !== 'personalized') throw new Error(`stage=${s.stage}, 기대 personalized`);
+    if (s.count !== 6) throw new Error(`count=${s.count}, 기대 6`);
+    if ('stage' in s || 'hasEnoughData' in s) {
+      throw new Error('제거된 stage / hasEnoughData 가 되살아났다 (ISSUE-008)');
+    }
     return `${s.count}회 · 평균 ${s.avgDistance.toFixed(1)}km · 주기 ${s.avgGap.toFixed(0)}일`;
   });
-  check('[개인화] 15개 라우트 렌더', () => {
+  check('[기록 6회] 15개 라우트 렌더', () => {
     const fail = [];
     for (const r of ROUTES) {
       try {
@@ -224,6 +227,69 @@ dom.window.addEventListener('load', () => {
       if (text.includes(banned)) throw new Error(`삭제된 문구가 남아 있다: "${banned}"`);
     }
     return `난이도 ${a.targetLevel} 동일 · 목표거리 ${a.targetDistance.toFixed(2)}km 동일`;
+  });
+
+  /* ---- 5d) 기능별 최소 데이터 조건 (ISSUE-008) ---- */
+  check('기능별 데이터 조건 (단계 개념 없음)', () => {
+    const C = window.HHCCore;
+    const NOW = Date.UTC(2026, 8, 30, 3, 0, 0);
+    const mk = (n) => Array.from({ length: n }, (_, i) => ({
+      id: 'r' + i, date: NOW - (i * 20 + 1) * 86400000, courseId: 'x', name: 'x',
+      distance: 7 + i, duration: 7200, ascent: 500, descent: 470,
+      avgPace: 17, calories: 600, level: 2, maxAlt: 600, paceStability: 80, splits: []
+    }));
+
+    for (const n of [0, 1, 2, 3, 6]) {
+      const s = C.getStats(mk(n), NOW);
+      if ('stage' in s || 'hasEnoughData' in s) throw new Error(`${n}회: 제거된 필드가 있다`);
+      if (!s.capabilities) throw new Error(`${n}회: capabilities 누락`);
+      const c = s.capabilities;
+      if (c.canCompareWithPrevious !== (n >= C.MIN_RECORDS_FOR_COMPARISON)) throw new Error(`${n}회: 비교 조건`);
+      if (c.canShowSeries !== (n >= C.MIN_RECORDS_FOR_SERIES)) throw new Error(`${n}회: 그래프 조건`);
+      if (c.canInferPreferredLevel !== (n >= C.MIN_RECORDS_FOR_PREFERRED_LEVEL)) throw new Error(`${n}회: 선호 난이도 조건`);
+      if (c.canAnalyzeTrend !== (n >= C.MIN_RECORDS_FOR_TREND)) throw new Error(`${n}회: 추세 조건`);
+    }
+
+    /* 추천 근거에 단계 개념이 없어야 한다 */
+    const r = C.recommendNext({
+      records: mk(6), profile: {}, courses: C.COURSES, weather: null, now: NOW
+    });
+    if (!['onboarding', 'records'].includes(r.basis)) throw new Error(`basis=${r.basis}`);
+    const text = [...r.reasons, C.buildAnalysis(mk(6), NOW).headline].join(' ');
+    for (const banned of ['개인화 단계', '개인화가 활성화', '개인화 활성']) {
+      if (text.includes(banned)) throw new Error(`제거된 문구가 남아 있다: "${banned}"`);
+    }
+    return `조건 5종 · basis=${r.basis}`;
+  });
+
+  /* ---- 5e) 날짜 기준은 Asia/Seoul 고정 (ISSUE-007) ---- */
+  check('날짜 기준 Asia/Seoul 고정', () => {
+    const C = window.HHCCore;
+    if (C.TIMEZONE !== 'Asia/Seoul' || C.TZ_OFFSET_MINUTES !== 540) throw new Error('타임존 상수');
+
+    /* 2026-09-30 23:30 KST = 14:30 UTC */
+    const kstLateNight = Date.UTC(2026, 8, 30, 14, 30);
+    const p = C.kstParts(kstLateNight);
+    if (p.year !== 2026 || p.month !== 9 || p.day !== 30 || p.hour !== 23) {
+      throw new Error(`kstParts → ${p.year}-${p.month}-${p.day} ${p.hour}시`);
+    }
+    if (C.fmtDate(kstLateNight) !== '2026.09.30') throw new Error(`fmtDate=${C.fmtDate(kstLateNight)}`);
+
+    /* 경과 2시간이지만 한국 달력으로는 하루가 지났으므로 "어제" */
+    const nextDay0130 = Date.UTC(2026, 8, 30, 16, 30); // 2026-10-01 01:30 KST
+    if (C.fmtRelative(kstLateNight, nextDay0130) !== '어제') {
+      throw new Error(`fmtRelative=${C.fmtRelative(kstLateNight, nextDay0130)}`);
+    }
+    if (C.kstDayDiff(nextDay0130, kstLateNight) !== 1) throw new Error('kstDayDiff');
+
+    /* 날짜 입력 컨트롤 왕복 */
+    const v = C.toKstDateInputValue(kstLateNight);
+    if (v !== '2026-09-30') throw new Error(`toKstDateInputValue=${v}`);
+    const back = C.fromKstDateInputValue(v);
+    if (C.kstStartOfDay(kstLateNight) !== back) throw new Error('날짜 왕복 불일치');
+    if (C.fromKstDateInputValue('bad') !== null) throw new Error('잘못된 형식은 null');
+
+    return 'KST 고정 · 달력일 기준 · 입력 왕복 OK';
   });
 
   /* ---- 6) 차트 기하 골든 검증 ----

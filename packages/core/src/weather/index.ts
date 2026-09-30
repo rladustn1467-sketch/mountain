@@ -15,6 +15,7 @@
    ========================================================================== */
 import type { Plan, Weather } from '../types';
 import { fmtDateWithWeekday } from '../format';
+import { kstStartOfDay } from '../time';
 
 const DAY = 86400000;
 
@@ -51,12 +52,6 @@ export interface HikeDateResolution {
   label: string;
 }
 
-function startOfDay(ts: number): number {
-  const d = new Date(ts);
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
-}
-
 export interface ResolveHikeDateInput {
   /** 온보딩 Q4 값 */
   plan?: Plan | null;
@@ -67,13 +62,13 @@ export interface ResolveHikeDateInput {
 
 export function resolveHikeDate(input: ResolveHikeDateInput = {}): HikeDateResolution {
   const now = input.now ?? Date.now();
-  const today = startOfDay(now);
+  const today = kstStartOfDay(now);   /* 한국 시간 기준 자정 (ISSUE-007) */
 
   let date: number;
   let source: HikeDateSource;
 
   if (input.override != null) {
-    date = startOfDay(input.override);
+    date = kstStartOfDay(input.override);
     source = 'override';
   } else if (input.plan && PLAN_OFFSET_DAYS[input.plan] != null) {
     date = today + PLAN_OFFSET_DAYS[input.plan] * DAY;

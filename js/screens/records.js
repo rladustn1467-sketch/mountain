@@ -272,7 +272,7 @@
         <header class="topbar topbar--line">
           <button class="icon-btn" data-nav="back" aria-label="뒤로"><i class="fa-solid fa-arrow-left"></i></button>
           <span class="topbar__title">나의 산행 패턴</span>
-          <span class="chip chip--sm chip--active">${stats.stage === 'personalized' ? '개인화 활성' : '축적 중'}</span>
+          <span class="chip chip--sm chip--active">${stats.count}회 기록</span>
         </header>
         <div class="screen__body screen__body--notitle">
 

@@ -458,7 +458,7 @@
           <div class="card card--ai">
             <div class="card__head">
               <div>
-                <span class="ai-badge"><i class="fa-solid fa-wand-magic-sparkles"></i>${stats.stage === 'personalized' ? '개인화 분석' : stats.stage === 'growing' ? '기본 분석' : '기준선 분석'}</span>
+                <span class="ai-badge"><i class="fa-solid fa-wand-magic-sparkles"></i>${stats.count === 1 ? '기준선 분석' : '산행 분석'}</span>
                 <h2 class="card__title" style="margin-top:10px;font-size:var(--fs-lg)">${analysis.headline}</h2>
                 <p class="card__sub">${stats.count}회 산행 · ${U.fmtDate(rec.date)} 기준</p>
               </div>
@@ -490,7 +490,7 @@
           </section>
 
           <!-- 장기 개선점 -->
-          ${stats.hasEnoughData ? `<section class="card card--alt">
+          ${stats.capabilities.canAnalyzeTrend ? `<section class="card card--alt">
             <div class="card__head" style="margin-bottom:var(--sp-3)">
               <div><h2 class="card__title" style="font-size:var(--fs-md)"><i class="fa-solid fa-chart-line"></i> 장기 개선점</h2>
                 <p class="card__sub">최근 ${Math.ceil(stats.count / 2)}회 vs 이전 ${Math.floor(stats.count / 2)}회</p></div>
@@ -502,7 +502,7 @@
             </div>
             <div style="margin-top:var(--sp-4)">${HHC.charts.sparkline(stats.series.map((r) => r.ascent), { height: 60 })}</div>
             <div class="bar-meta"><span>회차별 고도 상승 추세</span><span>+${Math.round(stats.avgAscent)}m 평균</span></div>
-          </section>` : ui.notice('3회 이상 산행하면 <strong>장기 개선점 분석</strong>이 활성화됩니다.', 'muted', 'fa-database')}
+          </section>` : ui.notice(`산행 기록이 <strong>${HHC.core.MIN_RECORDS_FOR_TREND}회</strong> 이상이면 <strong>장기 변화 분석</strong>을 함께 보여드립니다.`, 'muted', 'fa-database')}
 
           <!-- 데이터가 다음 추천에 반영 -->
           <div class="card card--inset">

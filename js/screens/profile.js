@@ -33,6 +33,31 @@
     { v: '#c46a2b', label: '앰버', css: '#c46a2b' }
   ];
 
+  /* 기능별 최소 데이터 조건 (ISSUE-008).
+     임계값은 core 의 MIN_* 상수에서 가져오므로 정책이 바뀌면 여기도 함께 바뀐다. */
+  function dataCapabilityRows(stats) {
+    const core = HHC.core;
+    const caps = stats.capabilities;
+    const rows = [
+      { ok: caps.canCompareWithPrevious, icon: 'fa-arrow-right-arrow-left',
+        label: '이전 산행 대비 비교', need: `${core.MIN_RECORDS_FOR_COMPARISON}회` },
+      { ok: caps.canShowSeries, icon: 'fa-chart-simple',
+        label: '회차별 그래프', need: `${core.MIN_RECORDS_FOR_SERIES}회` },
+      { ok: caps.canInferPreferredLevel, icon: 'fa-signal',
+        label: '선호 난이도', need: `${core.MIN_RECORDS_FOR_PREFERRED_LEVEL}회` },
+      { ok: caps.canEstimateInterval, icon: 'fa-calendar-days',
+        label: '평균 산행 주기', need: '서로 다른 날 2회' },
+      { ok: caps.canAnalyzeTrend, icon: 'fa-chart-line',
+        label: '추세 · 장기 변화 분석', need: `${core.MIN_RECORDS_FOR_TREND}회` }
+    ];
+    return rows.map((r) => `<div class="between" style="opacity:${r.ok ? 1 : .55}">
+      <span style="font-size:var(--fs-sm)"><i class="fa-solid ${r.icon}" style="color:var(--color-text-faint)"></i> ${r.label}</span>
+      ${r.ok
+        ? '<i class="fa-solid fa-check" style="color:var(--color-primary)"></i>'
+        : `<span class="setting-desc">${r.need} 필요</span>`}
+    </div>`).join('');
+  }
+
   function expLabel(v) { return (HHC.ONBOARDING.experience.find((o) => o.value === v) || {}).title || '—'; }
   function prefLabel(v) { return (HHC.ONBOARDING.preference.find((o) => o.value === v) || {}).title || '—'; }
   function goalLabel(v) { return (HHC.ONBOARDING.goal.find((o) => o.value === v) || {}).title || '—'; }
@@ -58,30 +83,19 @@
             </div>
           </div>
 
-          <!-- 현재 개인화 단계 -->
+          <!-- 산행 데이터 현황
+               ISSUE-008: '개인화 단계(신규 → 축적 중 → 개인화 활성화)' 카드를 제거했다.
+               추천은 온보딩 정보로 첫 산행부터 개인화되므로 단계 개념이 없다.
+               대신 "지금 어떤 분석을 볼 수 있는지" 를 기능별 조건으로 보여준다. -->
           <div class="card">
             <div class="card__head" style="margin-bottom:var(--sp-3)">
-              <div><h2 class="card__title" style="font-size:var(--fs-md)"><i class="fa-solid fa-layer-group"></i> 개인화 단계</h2>
-              <p class="card__sub">산행 데이터가 쌓일수록 서비스가 진화합니다</p></div>
+              <div><h2 class="card__title" style="font-size:var(--fs-md)"><i class="fa-solid fa-database"></i> 산행 데이터</h2>
+              <p class="card__sub">기록이 쌓일수록 추천에 반영되는 데이터가 늘어납니다</p></div>
+              <span class="chip chip--sm chip--active">${stats.count}회</span>
             </div>
             <div class="stack-3">
-              <div class="between" style="opacity:${stats.stage === 'new' ? 1 : .55}">
-                <span style="font-size:var(--fs-sm)"><i class="fa-solid fa-seedling" style="color:var(--color-text-faint)"></i> ① 신규 사용자 · 데이터 없음</span>
-                ${stats.stage === 'new' ? '<span class="chip chip--sm chip--active">현재</span>' : '<i class="fa-solid fa-check" style="color:var(--color-primary)"></i>'}
-              </div>
-              <div class="between" style="opacity:${stats.stage === 'growing' ? 1 : .55}">
-                <span style="font-size:var(--fs-sm)"><i class="fa-solid fa-database" style="color:var(--color-text-faint)"></i> ② 데이터 축적 중 (1~2회)</span>
-                ${stats.stage === 'growing' ? '<span class="chip chip--sm chip--active">현재</span>' : (stats.stage === 'personalized' ? '<i class="fa-solid fa-check" style="color:var(--color-primary)"></i>' : '')}
-              </div>
-              <div class="between" style="opacity:${stats.stage === 'personalized' ? 1 : .55}">
-                <span style="font-size:var(--fs-sm)"><i class="fa-solid fa-fingerprint" style="color:var(--color-text-faint)"></i> ③ 개인화 활성화 (3회+)</span>
-                ${stats.stage === 'personalized' ? '<span class="chip chip--sm chip--active">현재</span>' : ''}
-              </div>
+              ${dataCapabilityRows(stats)}
             </div>
-            <div class="bar bar--thin" style="margin-top:var(--sp-4)">
-              <span style="width:${Math.min(100, stats.count / 3 * 100)}%"></span>
-            </div>
-            <div class="bar-meta"><span>${stats.count} / 3회</span><span>개인화 활성화까지</span></div>
           </div>
 
           <!-- ================= 디자인 시스템 콘솔 ================= -->

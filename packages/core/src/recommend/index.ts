@@ -60,7 +60,7 @@ export function recommendNext(input: RecommendInput): Recommendation {
     );
     const levelDist: Record<number, number> = { 1: 4.5, 2: 6.8, 3: 8.5, 4: 11 };
     targetDistance = levelDist[targetLevel] || 6.5;
-    basis = 'basic';
+    basis = 'onboarding';
     reasons.push(`등산 경험은 <strong>${optionTitle(ONBOARDING.experience, profile.experience, '입력 정보')}</strong> 수준입니다.`);
     reasons.push(`선호 난이도(<strong>${optionTitle(ONBOARDING.preference, profile.preference, '미입력')}</strong>)에 맞춰 첫 산행 부담을 낮췄습니다.`);
     reasons.push('아직 산행 기록이 없어 <strong>입력 정보 + 코스 데이터</strong>를 기준으로 추천했습니다.');
@@ -77,7 +77,7 @@ export function recommendNext(input: RecommendInput): Recommendation {
 
     targetLevel = clampLevel(avgLevel + adj);
     targetDistance = s.avgDistance * (s.count === 1 ? 1.02 : adj > 0 ? 1.08 : adj < 0 ? 0.92 : 1.01);
-    basis = s.hasEnoughData ? 'personalized' : 'partial';
+    basis = 'records';
 
     reasons.push(`최근 ${s.count}회 평균 거리 <strong>${s.avgDistance.toFixed(1)}km</strong>, 평균 고도 상승 <strong>+${Math.round(s.avgAscent)}m</strong>를 기준으로 했습니다.`);
 
@@ -159,13 +159,13 @@ export function pickReason(
 ): string {
   const { profile, basis, stats: s } = ctx;
 
-  if (basis === 'basic') {
+  if (basis === 'onboarding') {
     const exp = optionTitle(ONBOARDING.experience, profile.experience, '입력하신');
     const pref = optionTitle(ONBOARDING.preference, profile.preference, '선호도');
     return `${exp} 사용자이며 ${pref}를 선호하는 점을 고려해 처음 도전하기 좋은 코스로 추천했습니다.`;
   }
   if (!hasStatsData(s)) {
-    /* basis 가 basic 이 아니면 기록이 있다는 뜻이므로 실제로는 도달하지 않는다 */
+    /* basis 가 'records' 면 기록이 있다는 뜻이므로 실제로는 도달하지 않는다 */
     return '현재 체력 수준에 적합한 코스입니다.';
   }
   if (s.count === 1) {
